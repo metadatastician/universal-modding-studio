@@ -12,6 +12,8 @@ workflows:
     '.github/workflows/hypatia-scan.yml': []
     '.github/workflows/idris-ci.yml':
         - 'actions/checkout@v4.1.1'
+    '.github/workflows/label-triage.yml': []
+    '.github/workflows/labels.yml': []
     '.github/workflows/licence-hygiene.yml':
         - 'actions/checkout@v4.1.1'
     '.github/workflows/oikosbot.yml':
