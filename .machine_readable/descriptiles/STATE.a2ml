@@ -7,8 +7,8 @@ version = "0.1.0-alpha"
 type = "modding-studio"
 last-updated = "2026-08-29"
 branch = "main"
-build-status = "single-repository profile lanes implemented; remote rename cutover in progress"
-test-status = "115 Rust/Crusoe workspace tests, Clippy, generation drift, Slavia validation, architecture boundaries, 24 Zig FFI tests, 17 Idris2 modules, 40 extractor checks and the repaired IDApTIK v3 round trip green locally"
+build-status = "single-repository profile lanes implemented; remote rename and canonical archive cutover complete"
+test-status = "115 Rust/Crusoe workspace tests, Clippy, generation drift, Slavia validation, architecture boundaries, 24 Zig FFI tests, 17 Idris2 modules, 44 extractor/admission checks and the repaired IDApTIK v3 round trip green locally"
 
 [project-context]
 description = "Universal Modding Studio: independent authoring, generation, validation and packaging platform."
@@ -25,18 +25,17 @@ manifest-v2 = { status = "tested", notes = "Capabilities plus legacy compatibili
 enaction-adapter = { status = "designed", notes = "Trait and schema seam only." }
 studio-ui = { status = "aspirational", notes = "Specified multi-lens target; no frontend." }
 dependency-boundaries = { status = "tested", notes = "scripts/check-architecture-boundaries.sh rejects reverse runtime/UI dependencies and cross-game profile imports; hard-fails on a missing sibling." }
-end-to-end-roundtrip = { status = "gated", notes = "Observed green in CI 2026-07-27 (run 30288163489). ADR-0014 deterministic-repeat-output clause now met: the gate compiles twice and requires byte-identical artifacts. Remaining clause: no comparison of the loader exported canonical model against authored state, which is blocked on IDApTIK package-runner exporting LevelData." }
-idris2-abi = { status = "machine-checked-scope", notes = "17 modules typecheck; Validation deciders construct encoded witnesses. Raw extraction and Zig implementation parity remain open, so ABI scaffolding is not an end-to-end proof." }
-zig-ffi = { status = "tested-noncompliant", notes = "Integration tests exist, but std.fs/std.io violate the unified-hexadeca purity gate and generated-header ownership is incomplete." }
+end-to-end-roundtrip = { status = "gated", notes = "Rerun against merged IDApTIK main on 2026-08-29. The gate compiles twice, compares all eight authored field groups with the accepted model, then executes, snapshots, restores and replays identically. Evidence is scoped to that fixture and path." }
+idris2-abi = { status = "machine-checked-scope", notes = "17 modules typecheck; raw extraction is private and the exported parser returns ValidatedLevel only after four Dec procedures construct witnesses. Zig representation/parser parity remains open, so this is not end-to-end proof." }
+zig-ffi = { status = "tested-unintegrated", notes = "Integration tests exist. No canonical unified-hexadeca-api is locatable, and generated-header ownership plus Idris/Zig parity remain incomplete; compliance is not claimed." }
 snif-boundary = { status = "not-applicable", notes = "No BEAM runtime in UMS. Future BEAM native compute must use SNIFs; raw NIFs are forbidden." }
 
 [route-to-mvp]
 remaining = [
   { item = "Unify the public profile surface: expose the ums-profiles compiler through ums-profile-sdk's packageCompiler capability so there is one public abstraction, not two. Both crates stay; the second public surface does not (ADR-0015)", priority = "critical" },
-  { item = "Advance the round trip from gated to tested: have IDApTIK package-runner export the canonical LevelData the loader built, then compare it field by field against authored UMS state. Artifact determinism is now asserted; this is the last ADR-0014 clause outstanding", priority = "critical" },
-  { item = "Wire the raw extraction path through ValidatedLevel and prove parity between the Idris2-owned ABI and Zig implementation; deciders exist but extraction remains unproved", priority = "high" },
-  { item = "Remove std.fs/std.io from the Zig FFI through the unified hexadeca API and generate the C header from the Idris2 ABI", priority = "high" },
-  { item = "Complete the universal-modding-studio rename and archive canonical-ums read-only with ADR-0018's disposition appendix", priority = "high" },
+  { item = "Prove representation and parser parity between the Idris2-owned ValidatedLevel admission path and the Zig implementation", priority = "high" },
+  { item = "Implement a typed Idris ABI renderer and generated-header drift gate; Zig 0.14 advertises -femit-h but emits no header for a positive Zig-source probe", priority = "high" },
+  { item = "Integrate the Zig FFI with unified-hexadeca-api once its canonical implementation and versioned contract can be located; do not fabricate a local substitute", priority = "high" },
   { item = "Close IDApTIK modelled-versus-editable gaps", priority = "high" },
   { item = "Keep Slavia reflection aligned with its authoritative repository", priority = "medium" },
   { item = "Implement interactive studio only after host-neutral selection/IR seams exist", priority = "medium" }
@@ -44,7 +43,7 @@ remaining = [
 
 [cross-repository-reconciliation]
 coordination-id = "ums-idaptik-slavia-enaction-2026-07-25"
-decision-status = "one-repository profile-lane model accepted in ADR-0018; rename/archive cutover in progress"
+decision-status = "one-repository profile-lane model accepted in ADR-0018; rename/archive cutover complete"
 role = "Authoring, profile reflection, validation orchestration, game-specific compilation, and package emission; never game-runtime truth."
 settled = [
   "Released games must not depend on the UMS user interface",

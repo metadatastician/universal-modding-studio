@@ -87,7 +87,7 @@ seams:
     test_ref: "ffi/zig/test/integration_test.zig"
     failure_mode: "fail-closed"
     tier: "zig-assured"
-    notes: "Idris2 is contract owner. Zig purity/header generation remain open; scaffolding is not proof."
+    notes: "Idris2 admission now returns ValidatedLevel only. Zig parity/header generation and the unlocated canonical hexadeca dependency remain open; scaffolding is not proof."
 
 ## Container Security
 
