@@ -230,8 +230,10 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
   tests plant a failing value for every witness class. The exported Zig JSON
   admission endpoint agrees on the shared six-fixture corpus, including a
   malformed-IP rejection control. This is bounded tested parity, not proof of
-  universal parser equivalence; the lossy legacy Zig C-struct conversion remains
-  an explicit representation gap. See `docs/ABI-PARITY.adoc`.
+  universal parser equivalence. The bounded C codec now has a separate complete
+  active-field round-trip test; generated Idris2 header parity remains blocked
+  by verified toolchain capability. See `docs/ABI-PARITY.adoc` and
+  `docs/ABI-ROUNDTRIP.adoc`.
 
 | UMS → game round trip
 | CI-gated and rerun against merged IDApTIK main on 2026-08-29:

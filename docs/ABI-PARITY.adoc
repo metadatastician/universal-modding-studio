@@ -32,14 +32,15 @@ proofs.
 
 == Explicit gaps
 
-The older `idaptik_ums_serialize_level` and
-`idaptik_ums_deserialize_level` C-struct path is lossy: it does not yet preserve
-all sections and wire names represented by `LevelData`. Therefore lossless
-representation/round-trip parity remains open.
+The bounded active fields of the C-struct path now round-trip through the
+complete wire representation; see `docs/ABI-ROUNDTRIP.adoc`. That executable
+test is not a universal parser-equivalence proof and does not compare padding
+or inactive union payload bytes.
 
-The estate FFI chain also remains incomplete. The Idris2 ABI is not yet the
-source for a generated C header, and no canonical unified-hexadeca API has been
-located for the Zig implementation to adopt. No compatibility with an
+The estate FFI chain remains incomplete. Idris2 0.7 cannot export C ABI headers,
+and Zig 0.14's advertised `-femit-h` produced no header in a planted probe. No
+generated-header parity is claimed. No canonical unified-hexadeca API has been
+located for the Zig implementation to adopt, and no compatibility with an
 approximation is claimed. If a BEAM-native consumer is introduced later, it
 must use the estate SNIF sandbox and never a raw NIF. Rust consumers are
 Rust/Crusoe consumers.

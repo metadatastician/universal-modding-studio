@@ -1,0 +1,77 @@
+{
+  "devices": [
+    { "kind": "phone_system", "ip": "10.8.0.1", "name": "pbx-core", "security": "strong" },
+    { "kind": "server", "ip": "10.8.0.2", "name": "failover", "security": "medium" }
+  ],
+  "zones": [
+    { "name": "lobby", "security_tier": 1 },
+    { "name": "vault", "security_tier": 4 }
+  ],
+  "guards": [
+    { "world_x": 20.5, "zone": "lobby", "rank": "chief", "patrol_radius": 12.25 }
+  ],
+  "dogs": [
+    { "world_x": 24.0, "breed": "bloodhound", "patrol_radius": 9.5 }
+  ],
+  "drones": [
+    { "world_x": 30.0, "archetype": "hunter", "altitude": 80.0 }
+  ],
+  "assassins": [
+    { "spawn_x": 90.0, "ambush_count": 3, "retreat_threshold": 35 }
+  ],
+  "items": [
+    { "item": { "id": "cable", "kind": { "type": "cable", "sub_type": "usb" }, "name": "USB lead", "weight": 1, "condition": "good", "uses_remaining": 9 }, "world_x": 1.0, "container": "locker" },
+    { "item": { "id": "adapter", "kind": { "type": "adapter", "sub_type": "media_converter" }, "name": "Converter", "weight": 2, "condition": "worn" }, "world_x": 2.0, "container": "locker" },
+    { "item": { "id": "tool", "kind": { "type": "tool", "sub_type": "multimeter" }, "name": "Meter", "weight": 3, "condition": "damaged" }, "world_x": 3.0, "container": "bench" },
+    { "item": { "id": "module", "kind": { "type": "module", "sub_type": "qsfp" }, "name": "QSFP", "weight": 1, "condition": "pristine" }, "world_x": 4.0, "container": "rack" },
+    { "item": { "id": "storage", "kind": { "type": "storage", "capacity": 4096 }, "name": "Drive", "weight": 4, "condition": "broken" }, "world_x": 5.0, "container": "safe" },
+    { "item": { "id": "consumable", "kind": { "type": "consumable", "sub_type": "decryptor" }, "name": "Decryptor", "weight": 1, "condition": "good" }, "world_x": 6.0, "container": "safe" },
+    { "item": { "id": "keycard", "kind": { "type": "keycard", "zone": "vault" }, "name": "Vault card", "weight": 0, "condition": "pristine" }, "world_x": 7.0, "container": "guard" },
+    { "item": { "id": "radio", "kind": { "type": "radio" }, "name": "Radio", "weight": 2, "condition": "worn" }, "world_x": 8.0, "container": "guard" }
+  ],
+  "wiring": [
+    { "kind": "pbx_comms", "device_ip": "10.8.0.1", "difficulty": 7 }
+  ],
+  "mission": {
+    "mission_id": "full-c-layout",
+    "location_id": "exchange",
+    "objectives": [
+      { "id": "enter", "description": "Enter the exchange", "required": true },
+      { "id": "cache", "description": "Find the optional cache", "required": false }
+    ],
+    "time_limit": 600
+  },
+  "physical": {
+    "ground_y": -2.0,
+    "world_width": 900.0,
+    "interaction_distance": 3.25,
+    "has_power_system": true,
+    "has_security_cameras": true,
+    "covert_links": 5
+  },
+  "zone_transitions": [
+    { "world_x": 10.0, "from_zone": "outside", "to_zone": "lobby" },
+    { "world_x": 70.0, "from_zone": "lobby", "to_zone": "vault" }
+  ],
+  "device_defences": [
+    {
+      "ip": "10.8.0.1",
+      "flags": {
+        "tamper_proof": true,
+        "decoy": true,
+        "canary": true,
+        "one_way_mirror": true,
+        "kill_switch": true,
+        "failover_target": "10.8.0.2",
+        "cascade_trap": "10.8.0.2",
+        "mirror_target": "10.8.0.2",
+        "instruction_whitelist": ["dial", "route"],
+        "time_bomb": 45,
+        "undo_immunity": 3
+      }
+    }
+  ],
+  "has_pbx": true,
+  "pbx_ip": "10.8.0.1",
+  "pbx_world_x": 33.5
+}

@@ -1,0 +1,59 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= Bounded C ABI round-trip and header status
+:toc:
+
+== Implemented codec
+
+`idaptik_ums_serialize_level` and `idaptik_ums_deserialize_level` now use one
+complete codec over the snake_case wire model admitted by Idris2. The old
+partial implementation has been removed. The codec preserves every active
+field representable by the bounded C `LevelData`, including owned strings,
+all eight item variants, mission objectives, optional values, transitions,
+device defences and PBX data. Textual enum values and `covert_links` match the
+Idris2 wire vocabulary.
+
+Deserialized strings, objective arrays and whitelist entries live in an
+internal arena. The public `LevelData` layout is unchanged; the existing
+`idaptik_ums_destroy_level` entry point releases the outer value and its arena.
+
+`tests/abi-roundtrip/full-c-layout.json` exercises every section, every item
+variant, both optional-value states across the document, all defence flags and
+mission objectives. The integration test checks representative C fields,
+serializes the value, confirms the resulting document is admitted, deserializes
+it again and requires the second serialization to be byte-identical.
+
+This is a bounded executable round-trip test. It is not a proof for arbitrary
+JSON, does not compare padding or inactive union payload bytes, and does not
+prove that Idris2 and Zig parser implementations are universally equivalent.
+
+== Generated-header capability audit
+
+The pinned Idris2 0.7.0 toolchain cannot generate a C header for these records.
+Idris2's official `%export` pragma supports the JavaScript backend only. Its C
+`%foreign` mechanism imports functions already described by C; the official FFI
+documentation states that matching the Idris and C types remains the
+programmer's responsibility and cannot be machine-checked.
+
+Zig 0.14.0 advertises `-femit-h`, but a planted probe against `types.zig`
+produced the requested object and no requested header. Wiring `getEmittedH()`
+into `build.zig` likewise built the library and failed because the promised
+header did not exist. That broken wiring was removed.
+
+Consequently, no generated Idris2-to-C header or header-drift gate is claimed.
+A handwritten header or locally invented extractor would be a substitute, not
+the requested authoritative generation chain, and has not been introduced.
+This obligation remains blocked until an Idris2 C-export/header backend or
+another estate-approved authoritative generator is selected.
+
+Official capability references:
+
+* https://idris2.readthedocs.io/en/latest/reference/pragmas.html#export[`%export` pragma]
+* https://idris2.readthedocs.io/en/latest/ffi/ffi.html[Idris2 FFI overview]
+
+== Estate boundaries
+
+No unified-hexadeca implementation work was started. A canonical estate API
+must first be authoritatively located. Rust consumers remain Rust/Crusoe
+consumers. Any future BEAM-native adapter must use SNIFs and never raw NIFs.
