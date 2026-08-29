@@ -17,8 +17,8 @@ first-profile = "idaptik"
 second-profile = "chronicles-of-slavia"
 
 [component-status]
-profile-sdk = { status = "tested", notes = "Versioned reflection, registration and isolation. Complementary to ums-profiles, not superseded by it (ADR-0015)." }
-profile-compiler = { status = "tested", notes = "ums-profiles consumes IDApTIK contracts/idaptik/v1 by path and emits the exact package the real game loader accepts. Merged from idaptik-ums-canonical branch agent/idaptik-roundtrip." }
+profile-sdk = { status = "tested", notes = "Sole repository-public profile abstraction and CLI host: versioned reflection, registration, isolation and descriptor-gated package compiler resolution. ums-profiles is marked non-publishable. Standalone Cargo registry packaging is not claimed." }
+profile-compiler = { status = "tested", notes = "ums-profile-sdk resolves the declared idaptik-package-compiler@1 capability to the ums-profiles implementation, which consumes IDApTIK contracts/idaptik/v1 by path and emits the exact package the real game loader accepts." }
 idaptik-profile = { status = "tested-compatibility", notes = "Generated reflection and executable edit facade; model/edit mismatch remains." }
 slavia-profile = { status = "reflection-only", notes = "Bounded Zone A fixture validated through the generic profile protocol; no loader, compiler or runtime adapter." }
 manifest-v2 = { status = "tested", notes = "Capabilities plus legacy compatibility and migration." }
@@ -32,12 +32,12 @@ snif-boundary = { status = "not-applicable", notes = "No BEAM runtime in UMS. Fu
 
 [route-to-mvp]
 remaining = [
-  { item = "Unify the public profile surface: expose the ums-profiles compiler through ums-profile-sdk's packageCompiler capability so there is one public abstraction, not two. Both crates stay; the second public surface does not (ADR-0015)", priority = "critical" },
   { item = "Prove representation and parser parity between the Idris2-owned ValidatedLevel admission path and the Zig implementation", priority = "high" },
   { item = "Implement a typed Idris ABI renderer and generated-header drift gate; Zig 0.14 advertises -femit-h but emits no header for a positive Zig-source probe", priority = "high" },
   { item = "Integrate the Zig FFI with unified-hexadeca-api once its canonical implementation and versioned contract can be located; do not fabricate a local substitute", priority = "high" },
   { item = "Close IDApTIK modelled-versus-editable gaps", priority = "high" },
   { item = "Keep Slavia reflection aligned with its authoritative repository", priority = "medium" },
+  { item = "Choose a standalone Cargo registry packaging boundary if external crate publication becomes a requirement; ums-profile-sdk currently has an intentional path dependency on non-publishable ums-profiles", priority = "medium" },
   { item = "Implement interactive studio only after host-neutral selection/IR seams exist", priority = "medium" }
 ]
 
@@ -80,8 +80,8 @@ required-order = [
   "DONE 2026-07-27: cherry-picked ums-profiles, the roundtrip and slavia-profile-check recipes, and the boundary script into this repository",
   "DONE 2026-07-27: consolidated both IDApTIK and both Slavia profile layouts under profiles/<game>/v<N>/",
   "DONE 2026-07-27: reran roundtrip-idaptik, slavia-profile-check, architecture-check, gen-check, config-check, dlc-check, ai-edit-check, workspace tests and Clippy -- all pass",
-  "OPEN: expose the ums-profiles compiler through ums-profile-sdk so one public abstraction is published, not two",
-  "IN PROGRESS 2026-08-29: rename this repository in place to universal-modding-studio and archive canonical-ums with ADR-0018's disposition appendix",
+  "DONE 2026-08-29: exposed the IDApTIK compiler through ums-profile-sdk's packageCompiler capability and made ums-profiles non-publishable",
+  "DONE 2026-08-29: renamed this repository in place to universal-modding-studio and archived canonical-ums with ADR-0018's disposition appendix",
 ]
 do-not = [
   "Do not merge both profile SDKs unchanged",

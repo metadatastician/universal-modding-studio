@@ -10,8 +10,8 @@
 [workspace]
 resolver = "3"
 # ums-profile-sdk and ums-profiles are complementary, not competing (ADR-0015).
-# The SDK has the reflection model and no compiler; ums-profiles has the
-# package compiler and no reflection model. Keep both.
+# The SDK is the repository-public profile surface and `ums-profile` CLI host;
+# ums-profiles is its internal compiler implementation. Keep both.
 members = [
     "crates/ums-ai-edit",
     "crates/ums-dlc",

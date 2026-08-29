@@ -13,3 +13,9 @@ description = "Versioned, reflective game-profile contracts for Universal Moddin
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
+clap.workspace = true
+ums-profiles = { path = "../ums-profiles" }
+
+[[bin]]
+name = "ums-profile"
+path = "src/main.rs"

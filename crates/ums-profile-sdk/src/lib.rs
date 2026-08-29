@@ -13,6 +13,7 @@
 #![forbid(unsafe_code)]
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
 use std::sync::OnceLock;
 
 use serde::{Deserialize, Serialize};
@@ -351,6 +352,41 @@ impl ProfileRegistry {
     pub fn iter(&self) -> impl Iterator<Item = &'static ProfileDescriptor> + '_ {
         self.profiles.values().copied()
     }
+
+    /// Resolve the executable compiler declared by a registered profile.
+    ///
+    /// `Ok(None)` means the profile truthfully declares no package compiler.
+    /// A declaration for which this host has no matching implementation is an
+    /// error, rather than a silent downgrade to reflection-only behaviour.
+    pub fn package_compiler(
+        &self,
+        profile_id: &str,
+    ) -> Result<Option<&'static dyn ProfileCompiler>, ProfileError> {
+        let profile = self
+            .get(profile_id)
+            .ok_or_else(|| ProfileError(format!("profile '{profile_id}' is not registered")))?;
+        resolve_package_compiler(profile)
+    }
+}
+
+fn resolve_package_compiler(
+    profile: &ProfileDescriptor,
+) -> Result<Option<&'static dyn ProfileCompiler>, ProfileError> {
+    let Some(contract) = &profile.package_compiler else {
+        return Ok(None);
+    };
+
+    match (
+        profile.profile_id.as_str(),
+        contract.id.as_str(),
+        contract.version.as_str(),
+    ) {
+        ("idaptik", "idaptik-package-compiler", "1") => Ok(Some(&IDAPTIK_PACKAGE_COMPILER)),
+        _ => Err(ProfileError(format!(
+            "profile '{}' declares unsupported package compiler '{}@{}'",
+            profile.profile_id, contract.id, contract.version
+        ))),
+    }
 }
 
 /// Executable services remain typed and host-controlled. A profile package
@@ -373,9 +409,44 @@ pub trait ProfileExporter: Send + Sync {
 }
 
 pub trait ProfileCompiler: Send + Sync {
-    fn compile(&self, model: &Value, manifest: &Value) -> Result<Vec<u8>, String>;
+    /// Compile a profile-owned source against the target game's versioned
+    /// contract artifacts. The game root is explicit: UMS never links the game
+    /// runtime or substitutes a locally copied contract.
+    fn compile(&self, source_path: &Path, game_root: &Path) -> Result<Value, ProfileError>;
+}
+
+struct IdaptikPackageCompiler;
+
+static IDAPTIK_PACKAGE_COMPILER: IdaptikPackageCompiler = IdaptikPackageCompiler;
+
+impl ProfileCompiler for IdaptikPackageCompiler {
+    fn compile(&self, source_path: &Path, game_root: &Path) -> Result<Value, ProfileError> {
+        ums_profiles::compile_idaptik(source_path, game_root)
+            .map_err(|error| ProfileError(error.to_string()))
+    }
 }
 
 pub trait SimulationAdapter: Send + Sync {
     fn preview(&self, model: &Value, seed: u64) -> Result<Value, String>;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{idaptik, resolve_package_compiler};
+
+    #[test]
+    fn unsupported_declared_compiler_version_is_rejected() {
+        let mut profile = idaptik().clone();
+        profile
+            .package_compiler
+            .as_mut()
+            .expect("IDApTIK declares a compiler")
+            .version = "2".into();
+
+        let error = resolve_package_compiler(&profile)
+            .err()
+            .expect("unsupported compiler declaration is rejected");
+        assert!(error.0.contains("unsupported package compiler"));
+        assert!(error.0.contains("@2"));
+    }
 }

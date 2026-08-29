@@ -132,7 +132,7 @@ roundtrip-idaptik IDAPTIK_ROOT="../IDApTIK":
     artifact="$(mktemp --suffix=.idaptik-package.json)"
     result="$(mktemp --suffix=.idaptik-result.json)"
     trap 'rm -f "$artifact" "$result"' EXIT
-    cargo run -q -p ums-profiles --bin ums-profile -- compile-idaptik \
+    cargo run -q -p ums-profile-sdk --bin ums-profile -- compile-idaptik \
       --source profiles/idaptik/v1/ghost-lobby.ums.json \
       --idaptik-root "{{IDAPTIK_ROOT}}" \
       --output "$artifact"
@@ -142,7 +142,7 @@ roundtrip-idaptik IDAPTIK_ROOT="../IDApTIK":
     # unfit to ship.
     repeat="$(mktemp --suffix=.idaptik-package.json)"
     trap 'rm -f "$artifact" "$result" "$repeat"' EXIT
-    cargo run -q -p ums-profiles --bin ums-profile -- compile-idaptik \
+    cargo run -q -p ums-profile-sdk --bin ums-profile -- compile-idaptik \
       --source profiles/idaptik/v1/ghost-lobby.ums.json \
       --idaptik-root "{{IDAPTIK_ROOT}}" \
       --output "$repeat"
@@ -172,7 +172,7 @@ roundtrip-idaptik IDAPTIK_ROOT="../IDApTIK":
 # Validate the bounded Zone A / Border Path profile through the generic profile
 # protocol. No Slavia runtime loader is claimed or required by this gate.
 slavia-profile-check:
-    cargo run -q -p ums-profiles --bin ums-profile -- validate \
+    cargo run -q -p ums-profile-sdk --bin ums-profile -- validate \
       --profile profiles/slavia/v1/profile.json \
       --fixture profiles/slavia/v1/fixtures/zone-a-border-path.json
 

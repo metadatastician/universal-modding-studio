@@ -23,8 +23,13 @@ solver seams, package envelopes and their evidence.
 ====
 
 The newer profile boundary follows the same rule more strictly:
-`crates/ums-profiles` consumes versioned game artifacts. It does not link
-`idaptik-core` or `slavia-core`. `just roundtrip-idaptik` is the evidence that
+`crates/ums-profile-sdk` is the public abstraction and resolves its
+`packageCompiler` service from the registered profile descriptor.
+`crates/ums-profiles` is the non-publishable implementation crate; it
+consumes versioned game artifacts and does not link `idaptik-core` or
+`slavia-core`. The `ums-profile` CLI is hosted by `ums-profile-sdk` and
+resolves the compiler through that public abstraction. `just
+roundtrip-idaptik` is the evidence that
 the artifact produced here is accepted by the sibling game's actual loader;
 `just slavia-profile-check` is descriptive-profile evidence only.
 
