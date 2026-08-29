@@ -6,6 +6,13 @@ SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 ## [Unreleased]
 
+### Added
+- A total Idris2 renderer now generates the bounded `LevelData` C header. CI
+  rejects stale output, and the Zig suite imports the header to compare all 22
+  struct layouts and all 15 enum representations. A planted `WorldX` width
+  drift was observed to fail the parity test; this is executable evidence, not
+  a universal ABI proof (2026-08-29).
+
 ### Changed
 - Consolidated UMS around one modular implementation history. IDApTIK is the
   primary executable proving lane, Chronicles of Slavia is the second-profile

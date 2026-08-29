@@ -223,13 +223,14 @@ crg-badge:
 #   dlc-check      — schema validation of every dlc/ artifact
 #   ai-edit-check  — sample edit-script replay
 #   ai-edit-reflect— the compiled registry equals the source that generated it
+#   abi-header-check — generated Idris2 C header is current
 #   test-ffi       — Zig FFI integration tests (zig build test, 0.14.0-guarded)
 # The former chain (test e2e aspect bench readiness) was five echo-stubs
 # ending in a fabricated "safe to merge!".
 
 # Run every real test gate in this repo
-test-all: test config-check gen-check dlc-check ai-edit-check ai-edit-reflect test-ffi
-    @echo "test-all: Rust suite + Nickel contracts + codegen + DLC schema + ai-edit replay + reflection + Zig FFI — all gates real, all green"
+test-all: test config-check gen-check dlc-check ai-edit-check ai-edit-reflect abi-header-check test-ffi
+    @echo "test-all: Rust suite + Nickel contracts + codegen + DLC schema + ai-edit replay + reflection + generated ABI header + Zig FFI — all gates real, all green"
 
 # Run all quality checks (zig fmt --check, Rust fmt/clippy, tests)
 quality: fmt-check lint test
@@ -880,7 +881,15 @@ _zig-guard:
       exit 1
     fi
 
-# Zig FFI integration tests — 27 blocks in ffi/zig/test/integration_test.zig.
+# Regenerate the C header from the typechecked Idris2 declaration model.
+abi-header:
+    ./scripts/generate-abi-header.sh
+
+# Fail if the committed generated header differs from the Idris2 renderer.
+abi-header-check:
+    ./scripts/generate-abi-header.sh --check
+
+# Zig FFI integration tests — 28 blocks in ffi/zig/test/integration_test.zig.
 test-ffi *args: _zig-guard
     @echo "Running Zig FFI integration tests..."
     cd ffi/zig && zig build test --summary all {{args}}

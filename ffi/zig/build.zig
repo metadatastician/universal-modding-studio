@@ -198,6 +198,7 @@ pub fn build(b: *std.Build) void {
             },
         }),
     });
+    integration_tests.root_module.addIncludePath(b.path("../../generated/abi"));
 
     const run_tests = b.addRunArtifact(integration_tests);
     // Run from the repository root so integration tests consume the same

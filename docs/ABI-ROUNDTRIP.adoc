@@ -28,7 +28,7 @@ This is a bounded executable round-trip test. It is not a proof for arbitrary
 JSON, does not compare padding or inactive union payload bytes, and does not
 prove that Idris2 and Zig parser implementations are universally equivalent.
 
-== Generated-header capability audit
+== Generated-header resolution
 
 The pinned Idris2 0.7.0 toolchain cannot generate a C header for these records.
 Idris2's official `%export` pragma supports the JavaScript backend only. Its C
@@ -41,11 +41,12 @@ produced the requested object and no requested header. Wiring `getEmittedH()`
 into `build.zig` likewise built the library and failed because the promised
 header did not exist. That broken wiring was removed.
 
-Consequently, no generated Idris2-to-C header or header-drift gate is claimed.
-A handwritten header or locally invented extractor would be a substitute, not
-the requested authoritative generation chain, and has not been introduced.
-This obligation remains blocked until an Idris2 C-export/header backend or
-another estate-approved authoritative generator is selected.
+The subsequent estate audit located a working, tested pattern in
+`metadatastician/enaction-engine`: a total Idris2 program renders declarations
+from typechecked ABI constants and a byte comparison rejects stale generated
+artifacts. UMS now applies that pattern to its bounded `LevelData` surface in
+`abi/CABI.idr`, with C-vs-Zig size, alignment, offset and discriminant checks.
+See `docs/ABI-HEADER.adoc` for exact coverage and proof limits.
 
 Official capability references:
 
@@ -54,6 +55,8 @@ Official capability references:
 
 == Estate boundaries
 
-No unified-hexadeca implementation work was started. A canonical estate API
-must first be authoritatively located. Rust consumers remain Rust/Crusoe
-consumers. Any future BEAM-native adapter must use SNIFs and never raw NIFs.
+No unified-hexadeca implementation work was started. Hypatia's project-local
+pattern includes log-only connector stubs and is not a canonical substitute;
+`authority-watch` also records the canonical dependency as unlocated. Rust
+consumers remain Rust/Crusoe consumers. Any future BEAM-native adapter must use
+SNIFs and never raw NIFs.

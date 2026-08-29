@@ -231,9 +231,10 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
   admission endpoint agrees on the shared six-fixture corpus, including a
   malformed-IP rejection control. This is bounded tested parity, not proof of
   universal parser equivalence. The bounded C codec now has a separate complete
-  active-field round-trip test; generated Idris2 header parity remains blocked
-  by verified toolchain capability. See `docs/ABI-PARITY.adoc` and
-  `docs/ABI-ROUNDTRIP.adoc`.
+  active-field round-trip test. The generated Idris2 header gate tests all
+  bounded C/Zig struct layouts and enum discriminants, but is not a universal
+  ABI proof. See `docs/ABI-PARITY.adoc`, `docs/ABI-ROUNDTRIP.adoc` and
+  `docs/ABI-HEADER.adoc`.
 
 | UMS → game round trip
 | CI-gated and rerun against merged IDApTIK main on 2026-08-29:
