@@ -1,0 +1,50 @@
+{
+  "devices": [
+    { "kind": "server", "ip": "10.1.2.3", "name": "core-db", "security": "strong" },
+    { "kind": "router", "ip": "10.1.2.4", "name": "failover", "security": "medium" }
+  ],
+  "zones": [ { "name": "dmz", "security_tier": 1 } ],
+  "guards": [
+    { "world_x": 12.5, "zone": "dmz", "rank": "enforcer", "patrol_radius": 30.0 }
+  ],
+  "dogs": [
+    { "world_x": 40.0, "breed": "robo_dog", "patrol_radius": 15.0 }
+  ],
+  "drones": [
+    { "world_x": 60.0, "archetype": "killer", "altitude": 120.0 },
+    { "world_x": 10.0, "archetype": "helper", "altitude": 35.5 }
+  ],
+  "assassins": [
+    { "spawn_x": 300.0, "ambush_count": 2, "retreat_threshold": 40 }
+  ],
+  "items": [
+    { "item": { "id": "cbl-1",
+                "kind": { "type": "cable", "sub_type": "fibre_lc" },
+                "name": "LC patch lead", "weight": 1, "condition": "worn" },
+      "world_x": 22.0, "container": "core-db" },
+    { "item": { "id": "key-dmz",
+                "kind": { "type": "keycard", "zone": "dmz" },
+                "name": "DMZ keycard", "weight": 0, "condition": "pristine",
+                "uses_remaining": 3 },
+      "world_x": 25.0, "container": "core-db" }
+  ],
+  "wiring": [
+    { "kind": "patch_panel", "device_ip": "10.1.2.3", "difficulty": 4 }
+  ],
+  "device_defences": [
+    { "ip": "10.1.2.3",
+      "flags": { "tamper_proof": true, "kill_switch": true,
+                 "failover_target": "10.1.2.4",
+                 "instruction_whitelist": ["ls", "ping"],
+                 "time_bomb": 120 } },
+    { "ip": "10.1.2.4" }
+  ],
+  "zone_transitions": [
+    { "world_x": 50.0, "from_zone": "dmz", "to_zone": "internal" }
+  ],
+  "has_pbx": false,
+  "mission": { "mission_id": "m1", "location_id": "exchange-house" },
+  "physical": { "ground_y": 0.0, "world_width": 800.0,
+                "interaction_distance": 2.5, "has_power_system": true,
+                "has_security_cameras": true, "covert_links": 2 }
+}

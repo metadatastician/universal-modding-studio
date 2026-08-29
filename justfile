@@ -880,7 +880,7 @@ _zig-guard:
       exit 1
     fi
 
-# Zig FFI integration tests — 24 blocks in ffi/zig/test/integration_test.zig.
+# Zig FFI integration tests — 25 blocks in ffi/zig/test/integration_test.zig.
 test-ffi *args: _zig-guard
     @echo "Running Zig FFI integration tests..."
     cd ffi/zig && zig build test --summary all {{args}}

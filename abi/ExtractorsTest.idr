@@ -34,6 +34,7 @@ import Data.Fin
 import Data.List
 import Data.String
 import System
+import System.File
 
 ||| A level document exercising every extracted section, in the
 ||| snake_case wire format shared with ffi/zig/src/types.zig.
@@ -246,6 +247,25 @@ report (label, ok) = do
   putStrLn ((if ok then "  ok   " else "  FAIL ") ++ label)
   pure ok
 
+parityCases : List (String, Bool)
+parityCases =
+  [ ("tests/abi-parity/valid-full-level.json", True)
+  , ("tests/abi-parity/reject-defence-target.json", False)
+  , ("tests/abi-parity/reject-guard-zone.json", False)
+  , ("tests/abi-parity/reject-transition-order.json", False)
+  , ("tests/abi-parity/reject-pbx.json", False)
+  , ("tests/abi-parity/reject-malformed-ip.json", False)
+  ]
+
+checkParityFile : (String, Bool) -> IO Bool
+checkParityFile (path, expected) = do
+  Right document <- readFile path
+    | Left _ => report ("shared parity fixture readable: " ++ path, False)
+  let admitted = case parseValidatedLevelJson document of
+                   Right _ => True
+                   Left _  => False
+  report ("shared parity outcome: " ++ path, admitted == expected)
+
 covering
 main : IO ()
 main =
@@ -257,11 +277,12 @@ main =
       putStrLn "extractor checks:"
       let lvl = levelData validated
       results <- traverse report (positiveChecks lvl ++ negativeChecks)
+      parityResults <- traverse checkParityFile parityCases
       -- Single let on purpose: idris2 0.7.0 fails to parse two
       -- consecutive do-lets when the do-block is a case-alternative
       -- RHS (error misreported at the alternative head).
-      let passed = length (filter Prelude.id results)
-      putStrLn (show passed ++ "/" ++ show (length results) ++ " checks passed")
-      if passed == length results
+      let passed = length (filter Prelude.id (results ++ parityResults))
+      putStrLn (show passed ++ "/" ++ show (length results + length parityResults) ++ " checks passed")
+      if passed == length results + length parityResults
         then putStrLn "PASS"
         else exitWith (ExitFailure 1)

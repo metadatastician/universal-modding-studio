@@ -1,0 +1,6 @@
+{
+  "zone_transitions": [
+    { "world_x": 2.0, "from_zone": "a", "to_zone": "b" },
+    { "world_x": 1.0, "from_zone": "b", "to_zone": "c" }
+  ]
+}

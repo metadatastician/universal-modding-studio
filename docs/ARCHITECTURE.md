@@ -119,6 +119,11 @@ not by itself prove its intended invariant. Existing confirmed proof claims
 remain scoped; unimplemented deciders, extraction obligations and parity tests
 remain explicit debt.
 
+The shared corpus described in `docs/ABI-PARITY.adoc` now gives bounded tested
+agreement between Idris2 admission and the exported Zig JSON endpoint. It does
+not close universal parser equivalence, lossless C-struct round-trip parity,
+generated-header drift, or unified-hexadeca integration.
+
 ## Host-neutral model boundary
 
 The universal layer may represent:

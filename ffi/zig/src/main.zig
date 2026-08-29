@@ -12,8 +12,9 @@
 //   2. `idaptik_ums_add_*`          -- populate the level incrementally
 //   3. `idaptik_ums_set_*`          -- set singular config fields
 //   4. `idaptik_ums_validate_level` -- run all proof checks at runtime
-//   5. `idaptik_ums_serialize_level` / `idaptik_ums_deserialize_level`
-//   6. `idaptik_ums_destroy_level`  -- free the LevelData
+//   5. `idaptik_ums_admit_level_json` -- validate the complete JSON boundary
+//   6. `idaptik_ums_serialize_level` / `idaptik_ums_deserialize_level`
+//   7. `idaptik_ums_destroy_level`  -- free the LevelData
 //
 // Memory ownership: the library owns all LevelData allocations.  Callers
 // MUST NOT free the pointer themselves; always use `destroy_level`.
@@ -21,6 +22,7 @@
 const std = @import("std");
 const types = @import("types");
 const validate = @import("validate");
+const json_admission = @import("json_admission");
 
 // Pull in all domain FFI modules so their `export fn` declarations
 // are compiled and linked into the shared library.
@@ -254,6 +256,19 @@ pub export fn idaptik_ums_deserialize_level(
     };
 
     return level;
+}
+
+/// Parse and validate a complete snake_case LevelData JSON document against
+/// the same bounded representation and four admission conditions exercised by
+/// the Idris2 ProvenBridge. This does not allocate or return a C LevelData.
+pub export fn idaptik_ums_admit_level_json(
+    data: ?[*]const u8,
+    data_len: usize,
+) callconv(.c) bool {
+    const input = data orelse return false;
+    if (data_len == 0 or data_len > json_admission.max_level_json_bytes) return false;
+    json_admission.admitLevelJson(gpa, input[0..data_len]) catch return false;
+    return true;
 }
 
 // =========================================================================

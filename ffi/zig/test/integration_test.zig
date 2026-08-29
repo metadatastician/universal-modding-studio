@@ -419,6 +419,30 @@ test "serialize with null level returns 0" {
     try std.testing.expectEqual(@as(usize, 0), written);
 }
 
+test "shared Idris2-Zig JSON admission corpus has identical outcomes" {
+    try std.testing.expect(!main.idaptik_ums_admit_level_json(null, 0));
+    const one_byte = [_]u8{'{'};
+    try std.testing.expect(!main.idaptik_ums_admit_level_json(&one_byte, 1024 * 1024 + 1));
+
+    const allocator = std.testing.allocator;
+    const accepted = try std.fs.cwd().readFileAlloc(allocator, "tests/abi-parity/valid-full-level.json", 1024 * 1024);
+    defer allocator.free(accepted);
+    try std.testing.expect(main.idaptik_ums_admit_level_json(accepted.ptr, accepted.len));
+
+    const rejected_paths = [_][]const u8{
+        "tests/abi-parity/reject-defence-target.json",
+        "tests/abi-parity/reject-guard-zone.json",
+        "tests/abi-parity/reject-transition-order.json",
+        "tests/abi-parity/reject-pbx.json",
+        "tests/abi-parity/reject-malformed-ip.json",
+    };
+    for (rejected_paths) |path| {
+        const fixture = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
+        defer allocator.free(fixture);
+        try std.testing.expect(!main.idaptik_ums_admit_level_json(fixture.ptr, fixture.len));
+    }
+}
+
 // =========================================================================
 // Test: full lifecycle — create, populate, validate, serialise
 // =========================================================================
