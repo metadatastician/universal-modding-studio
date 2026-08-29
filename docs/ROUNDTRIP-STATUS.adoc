@@ -3,13 +3,15 @@
 
 = Round-trip status
 
-Last assessed: 2026-07-27.
+Last assessed: 2026-08-29.
 
-== IDApTIK: executed, not yet gated
+== IDApTIK: executed and gated
 
 `just roundtrip-idaptik` runs end to end. It compiles
-`profiles/idaptik/v1/ghost-lobby.ums.json` through `ums-profiles`, consuming
-the game-owned `contracts/idaptik/v1` artifacts by path, and hands the exact
+`profiles/idaptik/v1/ghost-lobby.ums.json` through the public
+`ums-profile-sdk` CLI and its descriptor-gated `packageCompiler` service. The
+resolved internal `ums-profiles` implementation consumes the game-owned
+`contracts/idaptik/v1` artifacts by path and hands the exact
 temporary artifact to IDApTIK's production loader
 (`idaptik-core --example package-runner`). The game accepts it, executes a
 grounded camera uplink, snapshots, restores into a fresh simulation, replays
@@ -27,9 +29,11 @@ roundtrip-idaptik: UMS artifact accepted, executed, snapshotted, restored
                    and replayed identically
 ....
 
-This retires a claim that was advertised and unreachable. The recipe, and the
-`ums-profiles` crate it needs, existed on no `main` branch in either UMS
-repository until the consolidation in ADR-0015.
+This retires a claim that was advertised and unreachable. The recipe and its
+internal `ums-profiles` implementation existed on no `main` branch in either
+UMS repository until the consolidation in ADR-0015. Since 2026-08-29, the CLI
+exercises that compiler only through `ums-profile-sdk`; the implementation
+crate is non-publishable.
 
 `rust-ci.yml` now runs the same sequence as a release-blocking step, checking
 IDApTIK out as a sibling and building the game's own crate from it. The exact

@@ -26,7 +26,9 @@ studio/CLI/LLM interface
 host-neutral orchestration, IR, edit, solver, validation and package seams
         |
         v
-ums-profile-sdk  <--- profile reflection + typed services
+ums-profile-sdk  <--- sole public profile surface
+        |
+        +---- ums-profiles (internal compiler implementation)
         |
         +---- profiles/idaptik/v1
         |          |
@@ -40,8 +42,11 @@ optional preview adapter: UMS model -> profile translation -> Enaction contract
 released runtime: compiled game package -> game loader/runtime
 ```
 
-The core never depends on a game profile. A profile depends on the SDK
-contract. A simulation adapter depends on host-neutral model/trace contracts
+The core never depends on a game profile. `ums-profile-sdk` is the sole public
+profile abstraction inside this repository. It resolves executable services only when a registered
+descriptor declares the exact supported contract; `ums-profiles` remains a
+non-publishable implementation crate. The `ums-profile` CLI is hosted by the
+SDK package and uses that resolution path. A simulation adapter depends on host-neutral model/trace contracts
 and a profile-supplied translation; it does not own game ontology. Enaction
 Engine does not depend on the UMS application. Released games do not load the
 editor UI.
@@ -145,7 +150,7 @@ The inputs are immutable and each successful edit produces a new state.
 Finite-domain values may be solved; identifiers and geometry are refused when
 the caller has not supplied them. Existing DLC remains valid.
 
-The missing production round trip is:
+The tested IDApTIK production round trip is:
 
 ```text
 validated UMS model

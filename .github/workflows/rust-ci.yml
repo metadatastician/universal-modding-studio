@@ -127,12 +127,12 @@ jobs:
           repeat="$(mktemp --suffix=.idaptik-package.json)"
           result="$(mktemp --suffix=.idaptik-result.json)"
           trap 'rm -f "$artifact" "$repeat" "$result"' EXIT
-          cargo run -q -p ums-profiles --bin ums-profile -- compile-idaptik \
+          cargo run -q -p ums-profile-sdk --bin ums-profile -- compile-idaptik \
             --source profiles/idaptik/v1/ghost-lobby.ums.json \
             --idaptik-root "$IDAPTIK_ROOT" \
             --output "$artifact"
           # ADR-0014's deterministic-repeat-output clause.
-          cargo run -q -p ums-profiles --bin ums-profile -- compile-idaptik \
+          cargo run -q -p ums-profile-sdk --bin ums-profile -- compile-idaptik \
             --source profiles/idaptik/v1/ghost-lobby.ums.json \
             --idaptik-root "$IDAPTIK_ROOT" \
             --output "$repeat"

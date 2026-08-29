@@ -65,6 +65,17 @@ to port:
 * canonical's package compiler, profile fixtures and architecture-boundary
   script already landed in the surviving history through the earlier
   round-trip consolidation.
+* `ums-profile-sdk` is the sole repository-public profile abstraction. It resolves
+  the IDApTIK compiler through the descriptor's
+  `packageCompiler = idaptik-package-compiler@1` declaration.
+  `ums-profiles` remains as a non-publishable implementation crate. The
+  `ums-profile` CLI moves to the SDK package and resolves through that same
+  capability; Slavia remains reflection-only and does not acquire a synthetic
+  compiler.
+* This decision does not claim standalone Cargo registry publication. The SDK
+  currently depends by path on the deliberately non-publishable implementation
+  crate; `cargo package -p ums-profile-sdk` rejects that boundary until a
+  separate packaging design is chosen.
 * `canonical-ums-launcher.sh` and `canonical-ums.launcher.a2ml` are generated,
   identity-specific predecessors of launchers already present in this tree.
 * canonical ADR-0002's taxonomy decision is represented by this repository's

@@ -35,6 +35,13 @@ import, export, compilation and deterministic simulation preview. Reflection
 names capabilities; it does not grant arbitrary execution. A host explicitly
 wires trusted trait implementations.
 
+The `ums-profile` CLI is hosted by this crate. Its IDApTIK compile command
+resolves the registered descriptor's exact
+`idaptik-package-compiler@1` contract before invoking the non-publishable
+`ums-profiles` implementation. A profile with no `packageCompiler`, including
+the current Slavia profile, yields no compiler; an unknown or unsupported
+declaration is rejected rather than silently downgraded.
+
 Profile registration rejects malformed API versions, IDs, semantic versions,
 duplicate definitions, empty/duplicate vocabularies and edit fields that
 refer to missing vocabularies. Duplicate profile IDs are rejected.

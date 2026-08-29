@@ -229,15 +229,16 @@ dependencies = [
 name = "ums-profile-sdk"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "serde",
  "serde_json",
+ "ums-profiles",
 ]
 
 [[package]]
 name = "ums-profiles"
 version = "0.1.0"
 dependencies = [
- "clap",
  "serde_json",
 ]
 

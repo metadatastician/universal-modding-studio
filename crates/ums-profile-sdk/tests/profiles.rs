@@ -2,10 +2,18 @@
 // SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 use serde_json::{Value, json};
+use std::path::{Path, PathBuf};
 use ums_profile_sdk::{
     PROFILE_API_VERSION, ProfileRegistry, SimulationAdapter, chronicles_of_slavia, idaptik,
     is_profile_id, is_semver,
 };
+
+fn root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("workspace root")
+}
 
 #[test]
 fn built_in_profiles_register_with_valid_ids_and_versions() {
@@ -60,6 +68,54 @@ fn slavia_vocabulary_and_verb_resolution_are_profile_owned() {
 fn profile_terms_do_not_leak_across_games() {
     assert!(!chronicles_of_slavia().vocabulary_contains("guard-ranks", "AntiHacker"));
     assert!(!idaptik().vocabulary_contains("world-disruptions", "RiftCorruption"));
+}
+
+#[test]
+fn idaptik_package_compiler_is_resolved_and_executed_through_the_sdk() {
+    let registry = ProfileRegistry::with_builtins();
+    let compiler = registry
+        .package_compiler("idaptik")
+        .expect("IDApTIK compiler declaration is supported")
+        .expect("IDApTIK declares a package compiler");
+    let workspace_root = root();
+    let idaptik_root = std::env::var_os("IDAPTIK_ROOT")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| {
+            workspace_root
+                .parent()
+                .expect("UMS workspace has a parent")
+                .join("IDApTIK")
+        });
+    let package = compiler
+        .compile(
+            &workspace_root.join("profiles/idaptik/v1/ghost-lobby.ums.json"),
+            &idaptik_root,
+        )
+        .expect("SDK compiler executes against the game-owned contract");
+
+    assert_eq!(package["format"], "idaptik-package/v1");
+    assert_eq!(package["scenario"]["scenario_id"], package["scenario_id"]);
+    assert_eq!(package["contract"]["version"], "1.0.0");
+}
+
+#[test]
+fn reflection_only_profile_does_not_fabricate_a_compiler() {
+    let registry = ProfileRegistry::with_builtins();
+    assert!(
+        registry
+            .package_compiler("chronicles-of-slavia")
+            .expect("Slavia compiler declaration is readable")
+            .is_none()
+    );
+}
+
+#[test]
+fn unknown_profile_cannot_resolve_a_compiler() {
+    let error = ProfileRegistry::with_builtins()
+        .package_compiler("unknown-game")
+        .err()
+        .expect("unknown profile is rejected");
+    assert!(error.0.contains("not registered"));
 }
 
 struct DeterministicPreview;
