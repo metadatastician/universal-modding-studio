@@ -56,7 +56,7 @@
     ],
     "guarantees": {
       "deterministic": true,
-      "snapshot_format": "idaptik-ghost-lobby-runtime-v2",
+      "snapshot_format": "idaptik-ghost-lobby-runtime-v3",
       "required_events": [
         "PivotOpened",
         "UplinkAction",

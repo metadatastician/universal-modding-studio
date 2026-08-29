@@ -52,7 +52,7 @@ artifacts must be byte-identical.
 carries `accepted`: the loader's own parsed view of the fields a UMS author
 writes (`scenario_id`, `seed`, `run_ticks`, `snapshot_tick`, `taxonomy`,
 `actors`, `commands`, `guarantees`).
-`scripts/compare-authored-vs-accepted.py` diffs it against the source and fails
+`scripts/compare-authored-vs-accepted.sh` diffs it against the source and fails
 the gate on any difference.
 
 It deliberately does **not** compare `scenario`. The compiler copies the

@@ -1,0 +1,84 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= UMS profile development lanes
+
+Universal Modding Studio has one implementation repository and one shared
+history. Different rates of change are expressed through profile ownership,
+versioned contracts and evidence gates rather than long-lived repository
+forks.
+
+== Current sequence
+
+[cols="1,2,2,2"]
+|===
+| Lane | Current scope | Evidence gate | Stability
+
+| IDApTIK
+| The deepest profile: vocabulary, edit compatibility, package compilation and
+  the real game-loader round trip.
+| `just roundtrip-idaptik`, profile tests and the game-owned v1 contracts.
+| Fast. Breaking experiments require an explicit profile or contract version.
+
+| Chronicles of Slavia
+| The bounded Zone A profile used to challenge IDApTIK-shaped abstractions.
+| `just slavia-profile-check`, vocabulary isolation and comparison with the
+  authoritative Slavia repository.
+| Exploratory. No runtime integration is claimed.
+
+| Shared UMS
+| Profile protocol, host-neutral orchestration, deterministic packaging,
+  provenance and other genuinely cross-game mechanics.
+| Evidence from two real profiles, unless the concern is game-independent by
+  definition.
+| Deliberate. Interfaces move more slowly than profile implementations.
+|===
+
+== Where a change starts
+
+An IDApTIK requirement starts in `profiles/idaptik/v1`, the game contract, the
+IDApTIK round-trip harness, or an explicitly labelled compatibility facade. It
+does not start in a universal namespace merely because another game might one
+day need something similar.
+
+A Slavia requirement starts in `profiles/slavia/v1` and remains faithful to
+the separate Slavia repository. Slavia is not required to imitate IDApTIK in
+order to reuse UMS.
+
+Foundational facilities such as stable identity, provenance, deterministic
+encoding and profile registration may begin in shared code when their contract
+contains no game ontology.
+
+Rust facilities follow the estate's Rust/Crusoe policy. Cross-language profile
+or runtime seams use Idris2-owned ABIs and Zig unified-hexadeca FFIs. A future
+BEAM native-compute adapter uses SNIFs rather than raw NIFs. These constraints
+govern applicable boundaries; they are not reasons to add unused adapters.
+
+== Promotion to shared code
+
+Promotion is a refactoring inside this repository. A promotion proposal must:
+
+. name the two real profile needs that share a structural contract;
+. distinguish the shared mechanism from each game's vocabulary and policy;
+. provide tests for both profiles and a negative isolation test;
+. preserve a compatibility path or record the version boundary;
+. update the architecture boundary check when the dependency rule changes;
+. state what remains profile-specific.
+. distinguish confirmed proof evidence from types, declarations and
+  scaffolding, and record every remaining proof obligation.
+
+If only IDApTIK needs a capability, it stays IDApTIK-specific. That is a valid
+outcome, not failed generalisation.
+
+== Releases
+
+The repository may publish experimental IDApTIK profile versions more often
+than shared UMS interface versions. A profile release identifies the shared
+interface version it consumes. A shared release must not imply that unfinished
+Slavia or future-game integration is available.
+
+== Future games
+
+Further profiles follow IDApTIK and Chronicles of Slavia. They should be added
+one at a time as real vertical slices. A third profile may justify a broader
+interface, but its arrival does not retroactively make every repeated noun a
+core concept; policy and ontology remain profile-owned.

@@ -18,14 +18,14 @@ and the repo's CI workflows — evidence over intuition, no aspirational grading
 | Component | Grade | Release stage | Evidence summary | Last assessed |
 |---|---|---|---|---|
 | Profile SDK (`crates/ums-profile-sdk`) | C | Alpha-stable | 8 tests cover registration, malformed ID/version rejection, reflection, fixtures, deterministic adapter behavior, duplicate refusal and two-way profile isolation. Both generated profile descriptors are validated at load. | 2026-07-25 |
-| IDApTIK edit compatibility engine (`crates/ums-ai-edit`, Rust) | C | Alpha-stable | 61 tests (miniKanren kernel, verbs, six runtime relations, deterministic replay and explicit profile dispatch) + sample replay, gated by `rust-ci.yml` with `clippy -D warnings`. | 2026-07-25 |
+| IDApTIK edit compatibility engine (`crates/ums-ai-edit`, Rust/Crusoe) | C | Alpha-stable | 65 tests (miniKanren kernel, verbs, six runtime relations, deterministic replay and explicit profile dispatch) + sample replay, gated by `rust-ci.yml` with `clippy -D warnings`. | 2026-08-29 |
 | Package/DLC bridge (`crates/ums-dlc` + `schemas/`) | C | Alpha-stable | 39 tests; validates all in-tree artifacts, legacy-manifest compatibility, v1→v2 migration and capability declarations. | 2026-07-25 |
 | Chronicles of Slavia profile | D | Design fixture | Reflection and isolation are tested against a minimal Zone A fixture; no UMS compiler, loader or runtime integration exists. | 2026-07-25 |
 | Enaction adapter | X | Designed only | Typed preview seam and request schema exist; no real adapter or loader exists. | 2026-07-25 |
 | Generation source of truth (`config/*.ncl`) | C | Alpha-stable | `config-check` typechecks every source AND requires all three `config/bad/bad_*.ncl` negative fixtures to be rejected; `gen-check` diffs generated artifacts and fails when `nickel` is absent rather than skipping. Gated by `config-gen.yml`. | 2026-07-22 |
-| Zig FFI (`ffi/zig/`) | C | Alpha-stable | 24/24 integration tests pass; CI-gated (`zig-ci.yml`); zig 0.14.0 pin enforced locally by `_zig-guard` and in CI. | 2026-07-20 |
+| Zig FFI (`ffi/zig/`) | D | Compatibility FFI | 24 integration tests are CI-gated and Zig 0.14.0 is pinned. The FFI is not yet unified-hexadeca compliant: it uses `std.fs`/`std.io`, and the Idris2-to-generated-header chain is incomplete. | 2026-08-29 |
 | Licence hygiene gate | C | Alpha-stable | Three steps, each negative-tested: a planted MPL header, a truncated LICENSE and an unattributed JSON file each make it fail. Polarity inverted with the AGPL relicence. | 2026-07-22 |
-| Idris2 ABI (`abi/`) | C | Beta | All 17 modules typecheck under `idris-ci.yml`, including `ProvenBridge`; the extractor test executable passes 40/40. `%default total` in every module, no `believe_me`, `postulate` or `assert_total`. Caveat: CI builds against a `proven` with `Proven.SafeMath.Proofs` removed (upstream issue), disclosed in `scripts/proven-min.ipkg`. See `Validation.idr` below. | 2026-07-27 |
+| Idris2 ABI (`abi/`) | C | Beta | All 17 modules typecheck under `idris-ci.yml`, including `ProvenBridge`; the extractor test executable passes 40/40. `Validation.idr` now has total `Dec`-returning deciders and constructs `ValidatedLevel`; the extractor path still returns raw `LevelData` and is not thereby proved valid. No `believe_me`, `postulate` or `assert_total`. Caveat: CI builds against a `proven` with `Proven.SafeMath.Proofs` removed, disclosed in `scripts/proven-min.ipkg`. | 2026-08-29 |
 | SPARK/GNATprove reference model (`spark/`) | X | — | Does not exist. Decided in ADR-0003 (§3) and not started; `gnatprove` is not installed on the development machine. | 2026-07-22 |
 | Zig hexadeca connector | X | — | Does not exist. `ffi/zig/` is the existing 11-file C-ABI surface, not the 16-protocol unified connector. | 2026-07-22 |
 | Interactive studio frontend | X | — | 0% — not started. The engine has no interactive consumer. Supersedes the former "AffineScript shell" row: IDApTIK uses Bevy, but UMS remains an independent authoring application and its portal is currently a design reference. | 2026-07-25 |
@@ -38,7 +38,7 @@ is still **D**, but the reason has changed completely.
 
 The 2026-07-20 assessment was held at D by three things: the engine was Python
 with no CI, the DLC schema check ran local-only, and the ABI was 16/17. **All
-three are now resolved.** The engine and the validator are Rust, CI-gated, with
+three are now resolved.** The engine and the validator are Rust/Crusoe, CI-gated, with
 profile, engine and package negative tests proving the gates can fail.
 
 `abi/ProvenBridge.idr` landed on 2026-07-20 (`c86c84c`) and its extractors on
@@ -51,17 +51,13 @@ typecheck, extractor tests 40/40.
 
 What remains:
 
-- **`abi/Validation.idr` — declared obligations, no deciders.** 114 lines
-  headed "Cross-domain validation proofs for level integrity", containing
-  **zero top-level function signatures**. It declares six proof-witness types
-  and a `ValidatedLevel` record with four erased proof fields, but there is no
-  decision procedure that constructs any witness, and `ValidatedLevel` appears
-  nowhere else in the repository. The extractor returns raw, unvalidated
-  `LevelData`, so no `ValidatedLevel` can be built by any code that exists.
-  The module typechecks trivially — declaring a datatype always does — and
-  counts toward the 17/17. The invariants are *stated*, never *established*.
-  This is the repository's one piece of real proof debt, and it sits inside
-  the component the estate points to as its verification success story.
+- **`abi/Validation.idr` deciders exist; extraction remains open.** Total
+  `Dec`-returning procedures now construct witnesses for the four
+  `ValidatedLevel` obligations, with compile-time positive and negative
+  examples. This confirms those functions typecheck and decide the encoded
+  propositions; it does not prove the Zig implementation or raw extractor
+  path uses them. `ProvenBridge` still returns raw `LevelData`, so the
+  end-to-end extraction obligation remains explicit.
 - **Not X or E:** every component above the D-line runs real, failing-able
   tests that currently pass, with documented scope.
 - The X-graded components (frontends, SPARK model, hexadeca connector, VM) are
@@ -90,13 +86,10 @@ stated rather than papered over.
   hand-written: `abi/Types.idr` and `ffi/zig/src/types.zig`. They are checked
   by tests, not generated from `config/vocab.ncl` — the obvious next extension
   of `scripts/gen.sh`.
-- The UMS → game round trip has never been executed end to end. Both sides
-  validate against the same declared contract, but nothing proves the game
-  accepts what UMS emits.
-- RSR compliance is partial: `.machine_readable/6a2/` + contractiles are
-  present, but `0-AI-MANIFEST.a2ml` is absent and no Immaculate Guide
-  compliance evidence is recorded in STATE.a2ml (a formal Grade-D
-  requirement for hyperpolymath projects — tracked as debt, not waived).
+- The UMS -> game round trip is implemented and CI-gated. A 2026-08-29 local
+  run correctly rejected snapshot contract drift from runtime v2 to v3; the
+  v3 contract repair is part of ADR-0018's consolidation cutover and must pass
+  before the renamed repository is declared green.
 - Until 2026-07-20 the Justfile's `test-all` chained five echo-stubs and
   printed "safe to merge!". Those recipes are deleted; every remaining gate
   runs real work and can fail.
@@ -106,14 +99,15 @@ stated rather than papered over.
 - **PROJECT D → C: done, 2026-07-27.** `ProvenBridge` landed on 2026-07-20 and
   the tree and the module-count claim now agree. No descope ADR is needed:
   descoping something that works would be the wrong record.
-- **PROJECT C → B:** write `Dec`-returning deciders for the four invariants
-  `Validation.idr` declares, so a `ValidatedLevel` can actually be constructed
-  and the extractor path is obliged to produce one. This is real work — a few
-  days — and unlike the phantom holes it is genuine.
+- **PROJECT C -> B:** require the extraction/FFI path to consume a
+  `ValidatedLevel`, generate the C header from the Idris2-owned ABI, and prove
+  parity with the unified-hexadeca Zig implementation. The deciders now exist;
+  wiring and cross-language evidence do not.
 - **ai-edit C → B:** grow a real consumer, and close the type-6 loop so the
   proposer consults `solve()` in-process rather than across a boundary.
-- **DLC bridge C → B:** execute the round trip in CI — generate an artifact
-  from UMS and load it with IDApTIK's loader.
+- **DLC bridge C -> B:** keep the implemented cross-repository round trip green
+  across versioned game contract changes and add an explicit negative drift
+  fixture.
 - **SPARK model X → C:** add `spark/src/ums_zones.ads` per ADR-0003 §3, a
   parity test against `constraints.rs`, and a proof gate that **fails when
   `gnatprove` is absent** rather than exiting 0.

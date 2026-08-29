@@ -6,6 +6,17 @@
 Universal Modding Studio is an independent authoring, generation, validation
 and packaging platform for game worlds, systems, agents, narratives and rules.
 
+It is one modular codebase with an intentionally uneven profile sequence:
+
+1. IDApTIK is the primary executable target and fast proving lane.
+2. Chronicles of Slavia is the second-profile abstraction test.
+3. Further games are added only after the first two reveal a stable shared
+   boundary.
+
+The universal core is therefore narrow but not speculative. Commonality is
+earned by two real profiles; it is not created by renaming an IDApTIK concept
+or predicting what an unknown future game might need.
+
 ## Dependency direction
 
 ```text
@@ -55,6 +66,49 @@ The working engine and bridge remain in `ums-ai-edit` and `ums-dlc` while their
 interfaces are separated. They are compatibility facades, not evidence that
 the destination crate split is complete. Empty aspirational crates are
 forbidden.
+
+## Change lanes
+
+All lanes live in this repository and share one history:
+
+- **IDApTIK proving lane:** profile vocabulary, compiler behavior, fixtures and
+  the executable game round trip. It may change quickly while its versioned
+  package contract remains explicit.
+- **Slavia abstraction lane:** a bounded second profile that either validates
+  a host-neutral seam or demonstrates that an IDApTIK concept must remain in
+  its profile.
+- **Shared UMS lane:** the profile SDK, host-neutral orchestration and package
+  protocol. Promotion here requires executable evidence from at least two real
+  profiles, or a foundational concern that is game-independent by definition
+  (identity, provenance, deterministic encoding and similar mechanics).
+
+Promotion changes ownership behind an interface in this tree. It does not copy
+an implementation into a slower-moving repository. Rejection is also useful:
+if Slavia has no corresponding concept, the IDApTIK implementation stays in
+its profile or compatibility facade.
+
+## Estate interoperation policy
+
+Rust components are Rust/Crusoe components. Cross-language FFI seams follow the
+estate chain: an Idris2 ABI module owns the contract, Zig implements the
+unified-hexadeca-compatible FFI, and C headers are generated rather than
+handwritten. The seam's assurance is bounded by its weaker Zig side even when
+the Idris2 contract contains checked proofs.
+
+UMS already has Idris2 ABI modules and a Zig FFI, but the chain is not yet
+fully compliant: contract-to-implementation generation is incomplete and the
+Zig layer directly uses `std.fs` and `std.io`, which the estate hexadeca purity
+gate rejects. These are recorded gaps, not proof or compliance claims.
+
+UMS has no BEAM runtime. If a future Elixir/BEAM adapter needs native compute,
+it must use the estate SNIF WebAssembly sandbox and never a raw NIF. This rule
+does not make SNIF a present dependency.
+
+Proof claims name the checked module, property and checker evidence. A
+typechecking declaration, generated header, Zig scaffold or CI workflow does
+not by itself prove its intended invariant. Existing confirmed proof claims
+remain scoped; unimplemented deciders, extraction obligations and parity tests
+remain explicit debt.
 
 ## Host-neutral model boundary
 

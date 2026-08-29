@@ -42,8 +42,11 @@ fi
 # Compare each field
 BAD=()
 for field in "${FIELDS[@]}"; do
-    AUTHORED_VAL=$(jq -c ".package.\"$field\"" "$SRC_PATH" 2>/dev/null || echo "null")
-    ACCEPTED_VAL=$(jq -c ".accepted.\"$field\"" "$RESULT_PATH" 2>/dev/null || echo "null")
+    # Sort object keys recursively before comparing. JSON object order is not
+    # semantic; the game reserializes maps in canonical key order while the
+    # authored fixture preserves source order.
+    AUTHORED_VAL=$(jq -cS ".package.\"$field\"" "$SRC_PATH" 2>/dev/null || echo "null")
+    ACCEPTED_VAL=$(jq -cS ".accepted.\"$field\"" "$RESULT_PATH" 2>/dev/null || echo "null")
     
     if [ "$AUTHORED_VAL" != "$ACCEPTED_VAL" ]; then
         BAD+=("$field")

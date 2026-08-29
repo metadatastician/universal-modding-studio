@@ -158,14 +158,14 @@ roundtrip-idaptik IDAPTIK_ROOT="../IDApTIK":
       and .seed == 31029276
       and .replay_equal == true
       and .package_guarantees_met == true
-      and .snapshot.format == "idaptik-ghost-lobby-runtime-v2"
+      and .snapshot.format == "idaptik-ghost-lobby-runtime-v3"
       and ([.events[].event] | index("CameraPinged") != null)
       and ([.cognitive_trace[].stage] | unique | length == 6)
     ' "$result" >/dev/null
     # ADR-0014's remaining clause: compare against the post-edit model. The jq
     # gate above proves acceptance and deterministic replay; neither would
     # notice a compiler that dropped a taxonomy term or retimed a command.
-    ./scripts/compare-authored-vs-accepted.py \
+    ./scripts/compare-authored-vs-accepted.sh \
       profiles/idaptik/v1/ghost-lobby.ums.json "$result"
     echo "roundtrip-idaptik: UMS artifact accepted, executed, snapshotted, restored and replayed identically"
 

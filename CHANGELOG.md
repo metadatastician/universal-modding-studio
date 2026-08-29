@@ -7,6 +7,11 @@ SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 ## [Unreleased]
 
 ### Changed
+- Consolidated UMS around one modular implementation history. IDApTIK is the
+  primary executable proving lane, Chronicles of Slavia is the second-profile
+  abstraction test, and shared interfaces require evidence from real profiles
+  rather than cross-repository copying. ADR-0018 supersedes the temporary
+  two-repository doctrine (2026-08-29).
 - Aligned the IDApTIK profile and host documentation with IDApTIK ADR-0008:
   Bevy is the selected game frontend and the unimplemented Fyrox evaluation
   stub is retired. UMS itself remains renderer-neutral (2026-07-25).

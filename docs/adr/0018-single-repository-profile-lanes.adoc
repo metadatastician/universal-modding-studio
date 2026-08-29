@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= ADR-0018: One UMS repository with profile development lanes
+
+Date: 2026-08-29
+
+== Status
+
+Accepted (owner ruling, 2026-08-29).
+
+== Context
+
+ADR-0015 selected one UMS repository after `idaptik-ums` and `canonical-ums`
+had become incompatible parallel implementations. Canonical ADR-0004 later
+overruled the archive decision and assigned the repositories different rates
+of change: IDApTIK experiments first, followed by deliberate generalisation in
+canonical UMS.
+
+The development philosophy was sound, but repository duplication did not
+create a reliable boundary. Both repositories continued to own copies of the
+same Rust engine, DLC validator, profile compiler, ABI, FFI, schemas, tests,
+boundary scripts and CI. Shared fixes therefore required two changes, while a
+deliberately absent promotion was indistinguishable from forgotten drift.
+
+The nominal experimental repository also acquired the stronger universal
+architecture, profile SDK and second-profile tests. The nominal canonical
+repository remained an older, more IDApTIK-shaped subset. Repository identity
+no longer described code ownership.
+
+The near-term product sequence is clear: IDApTIK is the key target, Chronicles
+of Slavia follows, and broader game support comes later. UMS needs focus and
+modularity, not premature breadth.
+
+== Decision
+
+`idaptik-ums`'s history is the sole active UMS implementation history and is to
+be renamed in place to `metadatastician/universal-modding-studio`. It must not
+be recreated or squash-copied to obtain that identity.
+
+Rates of change become lanes inside the one repository:
+
+* IDApTIK is the primary executable profile and fast proving lane.
+* Chronicles of Slavia is the second-profile abstraction test.
+* Shared UMS interfaces are the deliberate lane. A game concept is promoted
+  only when two real profiles demonstrate a host-neutral structural contract,
+  unless the concern is game-independent by definition.
+* Further games are deferred until the first two profiles provide a sound
+  base. No speculative empty crates or hypothetical universal ontology are
+  introduced for them.
+
+The current `ums-ai-edit` and `ums-dlc` IDApTIK surfaces remain explicitly
+labelled compatibility facades while ownership is moved in tested stages.
+Consolidation does not require a risky mass move.
+
+`canonical-ums` becomes a read-only historical repository after the remote
+rename and reference audit. Its two-repository ADR is superseded by this one.
+
+== Canonical repository disposition
+
+The consolidation audit found no canonical-only active engine implementation
+to port:
+
+* `dlc/legacy-ts-puzzles` is byte-identical to the surviving
+  `dlc/legacy-puzzles` payload set; only its README and directory name differ.
+* canonical's package compiler, profile fixtures and architecture-boundary
+  script already landed in the surviving history through the earlier
+  round-trip consolidation.
+* `canonical-ums-launcher.sh` and `canonical-ums.launcher.a2ml` are generated,
+  identity-specific predecessors of launchers already present in this tree.
+* canonical ADR-0002's taxonomy decision is represented by this repository's
+  later ADR-0004.
+* canonical ADR-0004 is retained in its own history as the superseded record of
+  the temporary two-repository decision.
+* `idaptik-ai-model-private.md` and `evidence-ledger-design-private.md` are
+  converted to AsciiDoc, reconciled with the current ESM ownership decisions
+  and published under IDApTIK's `docs/architecture/`, as IDApTIK ADR-0011
+  already requires. They remain labelled design hypotheses rather than UMS
+  implementation or proof.
+* uncommitted funding and Scorecard files in the canonical checkout are estate
+  maintenance work, not consolidation sources, and remain untouched.
+
+The canonical repository and its local branches must not be deleted. Archive
+means read-only preservation, not filesystem removal.
+
+== Consequences
+
+* Engine fixes, profile experiments and generalisation share one commit graph.
+* IDApTIK remains the immediate focus without defining the universal ontology.
+* Slavia supplies an actual abstraction check before broader expansion.
+* Promotion becomes an internal ownership refactor with two-profile tests, not
+  a manual cross-fork port.
+* Repository-wide CI, security policy and release mechanics have one owner.
+* The GitHub rename/archive cutover remains incomplete until references and
+  remote settings are updated and verified.
+
+== Estate boundary policy
+
+Rust means Rust/Crusoe. For cross-language ABI/FFI seams, Idris2 owns the
+contract, Zig implements the unified-hexadeca-compatible FFI, and C headers are
+generated. The existing UMS ABI and FFI are retained, but their current
+generation and Zig purity gaps are explicitly recorded; consolidation does not
+convert scaffolding into a compliance or proof claim.
+
+If future BEAM-hosted computation is introduced, it uses the estate SNIF
+WebAssembly sandbox and never a raw NIF. UMS has no current BEAM runtime, so no
+SNIF dependency is added speculatively.
+
+Proof claims require confirmed evidence from the named checker for the named
+property. Existing checked claims retain their measured scope. Types,
+declarations, generated files, workflow presence and scaffolding do not count
+as proof, and missing obligations remain recorded as gaps.
+
+== Supersedes
+
+This ADR supersedes the decision in canonical-ums ADR-0004 and supersedes
+ADR-0015's archive-era framing. It preserves ADR-0015's consolidation result.

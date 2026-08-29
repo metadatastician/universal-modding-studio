@@ -6,7 +6,11 @@ Date: 2026-07-27
 
 == Status
 
-Accepted
+Superseded by ADR-0018 on 2026-08-29.
+
+The consolidation outcome remains in force, but ADR-0018 replaces this ADR's
+archive-era framing with the owner-approved single-repository profile-lane
+model and records the final disposition of the former canonical repository.
 
 == Context
 
