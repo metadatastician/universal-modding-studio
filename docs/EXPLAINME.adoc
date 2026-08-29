@@ -227,9 +227,11 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
 | Contains total `Dec` procedures for the four cross-domain invariants and
   constructs a `ValidatedLevel` with erased witnesses. `ProvenBridge` keeps
   raw extraction private and exports `parseValidatedLevelJson`; its executable
-  tests plant a failing value for every witness class. This establishes the
-  Idris2 admission path only. The Zig parser and layouts are separately
-  implemented and do not yet have cross-language parity evidence.
+  tests plant a failing value for every witness class. The exported Zig JSON
+  admission endpoint agrees on the shared six-fixture corpus, including a
+  malformed-IP rejection control. This is bounded tested parity, not proof of
+  universal parser equivalence; the lossy legacy Zig C-struct conversion remains
+  an explicit representation gap. See `docs/ABI-PARITY.adoc`.
 
 | UMS → game round trip
 | CI-gated and rerun against merged IDApTIK main on 2026-08-29:

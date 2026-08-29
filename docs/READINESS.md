@@ -23,9 +23,9 @@ and the repo's CI workflows — evidence over intuition, no aspirational grading
 | Chronicles of Slavia profile | D | Design fixture | Reflection and isolation are tested against a minimal Zone A fixture; no UMS compiler, loader or runtime integration exists. | 2026-07-25 |
 | Enaction adapter | X | Designed only | Typed preview seam and request schema exist; no real adapter or loader exists. | 2026-07-25 |
 | Generation source of truth (`config/*.ncl`) | C | Alpha-stable | `config-check` typechecks every source AND requires all three `config/bad/bad_*.ncl` negative fixtures to be rejected; `gen-check` diffs generated artifacts and fails when `nickel` is absent rather than skipping. Gated by `config-gen.yml`. | 2026-07-22 |
-| Zig FFI (`ffi/zig/`) | D | Compatibility FFI | 24 integration tests are CI-gated and Zig 0.14.0 is pinned. Unified-hexadeca integration and the Idris2-to-generated-header chain remain incomplete; no canonical `unified-hexadeca-api` implementation is currently locatable, so compliance is not claimed or approximated. | 2026-08-29 |
+| Zig FFI (`ffi/zig/`) | D | Compatibility FFI | 25 integration tests are CI-gated and Zig 0.14.0 is pinned. The exported full-JSON admission endpoint agrees with Idris2 on the six shared fixtures. This is bounded tested parity, not proof; the legacy C-struct serializer/deserializer remains lossy. Unified-hexadeca integration and the Idris2-to-generated-header chain remain incomplete; no canonical `unified-hexadeca-api` implementation is currently locatable, so compliance is not claimed or approximated. | 2026-08-29 |
 | Licence hygiene gate | C | Alpha-stable | Three steps, each negative-tested: a planted MPL header, a truncated LICENSE and an unattributed JSON file each make it fail. Polarity inverted with the AGPL relicence. | 2026-07-22 |
-| Idris2 ABI (`abi/`) | C | Beta | All 17 modules typecheck under `idris-ci.yml`, including `ProvenBridge`. Raw JSON extraction is private; the exported parser admits only `ValidatedLevel` values after all four `Dec` procedures construct their witnesses. The extractor executable checks full-section decoding, malformed input, and a planted rejection for each witness class. Zig parser/representation parity remains unproved. No `believe_me`, `postulate` or `assert_total`. Caveat: CI builds against a `proven` with `Proven.SafeMath.Proofs` removed, disclosed in `scripts/proven-min.ipkg`. | 2026-08-29 |
+| Idris2 ABI (`abi/`) | C | Beta | All 17 modules typecheck under `idris-ci.yml`, including `ProvenBridge`. Raw JSON extraction is private; the exported parser admits only `ValidatedLevel` values after all four `Dec` procedures construct their witnesses. The extractor executable reports 50/50 checks, including one shared full-section positive, a planted rejection for each witness class, and malformed-IP rejection. The Zig endpoint agrees on that six-fixture corpus; universal parser equivalence and lossless representation parity remain unproved. No `believe_me`, `postulate` or `assert_total`. Caveat: CI builds against a `proven` with `Proven.SafeMath.Proofs` removed, disclosed in `scripts/proven-min.ipkg`. | 2026-08-29 |
 | SPARK/GNATprove reference model (`spark/`) | X | — | Does not exist. Decided in ADR-0003 (§3) and not started; `gnatprove` is not installed on the development machine. | 2026-07-22 |
 | Zig hexadeca connector | X | Blocked dependency | Does not exist. Estate reconnaissance cannot locate a canonical `unified-hexadeca-api`; Hypatia's project-local 16-transport pattern is not silently copied here. | 2026-08-29 |
 | Interactive studio frontend | X | — | 0% — not started. The engine has no interactive consumer. Supersedes the former "AffineScript shell" row: IDApTIK uses Bevy, but UMS remains an independent authoring application and its portal is currently a design reference. | 2026-07-25 |
@@ -47,16 +47,17 @@ profile, engine and package negative tests demonstrating the gates can fail.
 since 2026-07-22. **The D grade was held for five days by this table, not by
 the tree** — the row was never re-run after the work landed. Re-assessed
 2026-08-29 against a local reproduction of the CI pipeline: 17/17 modules
-typecheck, extractor/admission tests 44/44.
+typecheck, extractor/admission tests 50/50.
 
 What remains:
 
-- **The Idris extraction boundary is closed; cross-language parity remains
-  open.** Total `Dec`-returning procedures construct witnesses for the four
+- **The Idris extraction boundary is closed; bounded cross-language admission
+  parity is tested.** Total `Dec`-returning procedures construct witnesses for the four
   `ValidatedLevel` obligations. `ProvenBridge` keeps raw extraction private
   and exports only `parseValidatedLevelJson`; planted semantic negatives cover
-  every witness class. This confirms the named Idris2 path. It does not prove
-  that Zig's independently implemented parser and layouts are equivalent.
+  every witness class. The exported Zig endpoint agrees on the shared six-case
+  corpus. This does not prove universal parser equivalence, and the legacy Zig
+  C-struct serializer/deserializer still loses sections and wire names.
 - **Not X or E:** every component above the D-line runs real, failing-able
   tests that currently pass, with documented scope.
 - The X-graded components (frontends, SPARK model, hexadeca connector, VM) are
@@ -99,10 +100,11 @@ stated rather than papered over.
   the tree and the module-count claim now agree. No descope ADR is needed:
   descoping something that works would be the wrong record.
 - **PROJECT C -> B:** the Idris extraction boundary now consumes a
-  `ValidatedLevel`. Remaining work is a typed Idris renderer for the UMS ABI,
-  generated-header drift checks, Zig representation/parser parity, and
+  `ValidatedLevel`, and bounded JSON admission parity is tested. Remaining work
+  is a typed Idris renderer for the UMS ABI, generated-header drift checks,
+  lossless Zig C-struct representation/round-trip parity, and
   integration with a canonical unified-hexadeca implementation once one
-  exists. The local Idris admission result is not cross-language proof.
+  exists. The shared fixture result is not cross-language proof.
 - **ai-edit C → B:** grow a real consumer, and close the type-6 loop so the
   proposer consults `solve()` in-process rather than across a boundary.
 - **DLC bridge C -> B:** keep the implemented cross-repository round trip green

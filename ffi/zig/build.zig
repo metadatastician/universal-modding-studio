@@ -34,6 +34,12 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    const json_admission_mod = b.addModule("json_admission", .{
+        .root_source_file = b.path("src/json_admission.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const ipc_handlers_mod = b.addModule("ipc_handlers", .{
         .root_source_file = b.path("src/ipc_handlers.zig"),
         .target = target,
@@ -103,6 +109,7 @@ pub fn build(b: *std.Build) void {
     const all_imports = &[_]std.Build.Module.Import{
         .{ .name = "types", .module = types_mod },
         .{ .name = "validate", .module = validate_mod },
+        .{ .name = "json_admission", .module = json_admission_mod },
         .{ .name = "ipc_handlers", .module = ipc_handlers_mod },
         .{ .name = "inventory", .module = inventory_mod },
         .{ .name = "enemies", .module = enemies_mod },
@@ -181,6 +188,9 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_tests = b.addRunArtifact(integration_tests);
+    // Run from the repository root so integration tests consume the same
+    // cross-language fixture corpus as the Idris2 extractor tests.
+    run_tests.setCwd(b.path("../.."));
     const test_step = b.step("test", "Run IDApTIK UMS FFI integration tests");
     test_step.dependOn(&run_tests.step);
 }

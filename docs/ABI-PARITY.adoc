@@ -1,0 +1,59 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= Idris2–Zig JSON admission parity
+:toc:
+
+== Confirmed scope
+
+`ProvenBridge.parseValidatedLevelJson` is the Idris2 admission boundary. Raw
+JSON extraction remains private; successful admission returns a
+`ValidatedLevel` only after the four total `Dec` procedures construct witnesses
+for defence targets, guard zones, transition ordering and PBX consistency.
+
+`idaptik_ums_admit_level_json` is the corresponding exported Zig C-ABI
+endpoint. It parses the complete snake_case `LevelData` JSON representation,
+checks its bounded FFI representation, and applies the same four admission
+conditions without constructing the legacy C `LevelData` value.
+
+Both paths consume the single corpus in `tests/abi-parity/`. The corpus contains
+one full positive document covering every `LevelData` section and five negative
+documents: one for each witness class plus a malformed-IP control. The Idris2
+extractor executable reports all six expected outcomes, and the Zig integration
+suite calls the exported endpoint and reports the same outcomes.
+
+== Evidence classification
+
+The four Idris2 witness values are *machine-checked* by Idris2. The six-case
+cross-language result is *tested parity over a bounded corpus*. It is not a
+proof that the independently implemented parsers are equivalent for every JSON
+document. The Zig implementation and a passing CI job are not described as
+proofs.
+
+== Explicit gaps
+
+The older `idaptik_ums_serialize_level` and
+`idaptik_ums_deserialize_level` C-struct path is lossy: it does not yet preserve
+all sections and wire names represented by `LevelData`. Therefore lossless
+representation/round-trip parity remains open.
+
+The estate FFI chain also remains incomplete. The Idris2 ABI is not yet the
+source for a generated C header, and no canonical unified-hexadeca API has been
+located for the Zig implementation to adopt. No compatibility with an
+approximation is claimed. If a BEAM-native consumer is introduced later, it
+must use the estate SNIF sandbox and never a raw NIF. Rust consumers are
+Rust/Crusoe consumers.
+
+== Reproduction
+
+[source,shell]
+----
+idris2 --typecheck idaptik-ums.ipkg
+idris2 --build extractors-test.ipkg
+./build/exec/extractors-test
+
+cd ffi/zig
+ZIG_GLOBAL_CACHE_DIR=/tmp/ums-zig-014-global \
+  ZIG_LOCAL_CACHE_DIR=/tmp/ums-zig-014-local \
+  mise exec zig@0.14.0 -- zig build test --summary all
+----
