@@ -41,7 +41,8 @@ fixture : String
 fixture = """
 {
   "devices": [
-    { "kind": "server", "ip": "10.1.2.3", "name": "core-db", "security": "strong" }
+    { "kind": "server", "ip": "10.1.2.3", "name": "core-db", "security": "strong" },
+    { "kind": "router", "ip": "10.1.2.4", "name": "failover", "security": "medium" }
   ],
   "zones": [ { "name": "dmz", "security_tier": 1 } ],
   "guards": [
@@ -169,7 +170,7 @@ defenceChecks _ = [("exactly two defences decoded", False)]
 
 positiveChecks : LevelData -> List (String, Bool)
 positiveChecks lvl =
-     [ ("one device decoded", length lvl.devices == 1)
+     [ ("two devices decoded", length lvl.devices == 2)
      , ("one zone decoded",   length lvl.zones == 1)
      , ("one guard decoded",  length lvl.guards == 1)
      , ("fixture passes validateAndReport", validateAndReport lvl == [])
@@ -186,7 +187,7 @@ positiveChecks lvl =
 ||| context label pointing at the right field.
 failsMentioning : String -> String -> Bool
 failsMentioning doc needle =
-  case parseLevelJson doc of
+  case parseValidatedLevelJson doc of
     Left err => needle `isInfixOf` err
     Right _  => False
 
@@ -204,6 +205,22 @@ negativeChecks =
                                  "name": "r", "weight": 1 },
                        "world_x": 0.0 } ] }
         """
+      invalidGuardWitness = """
+        { "guards": [ { "world_x": 1.0, "zone": "missing",
+                          "rank": "basic", "patrol_radius": 2.0 } ] }
+        """
+      invalidDefenceWitness = """
+        { "device_defences": [ { "ip": "10.0.0.1" } ] }
+        """
+      invalidOrderWitness = """
+        { "zone_transitions": [
+            { "world_x": 2.0, "from_zone": "a", "to_zone": "b" },
+            { "world_x": 1.0, "from_zone": "b", "to_zone": "c" }
+          ] }
+        """
+      invalidPbxWitness = """
+        { "has_pbx": true, "pbx_ip": "10.0.0.9" }
+        """
   in [ ("unknown breed rejected with context",
           failsMentioning badBreed "dogs[0].breed: unknown dog breed 'poodle'")
      , ("bad wiring kind reported",
@@ -214,6 +231,14 @@ negativeChecks =
           failsMentioning missingFields "condition")
      , ("missing container reported",
           failsMentioning missingFields "container")
+     , ("invalid guard-zone witness rejected",
+          failsMentioning invalidGuardWitness "guards_in_zones")
+     , ("invalid defence-target witness rejected",
+          failsMentioning invalidDefenceWitness "defence_targets_valid")
+     , ("invalid transition-order witness rejected",
+          failsMentioning invalidOrderWitness "zones_ordered")
+     , ("invalid PBX witness rejected",
+          failsMentioning invalidPbxWitness "pbx_consistent")
      ]
 
 report : (String, Bool) -> IO Bool
@@ -224,12 +249,13 @@ report (label, ok) = do
 covering
 main : IO ()
 main =
-  case parseLevelJson fixture of
+  case parseValidatedLevelJson fixture of
     Left err => do
       putStrLn ("FAIL: fixture did not parse:\n" ++ err)
       exitWith (ExitFailure 1)
-    Right lvl => do
+    Right validated => do
       putStrLn "extractor checks:"
+      let lvl = levelData validated
       results <- traverse report (positiveChecks lvl ++ negativeChecks)
       -- Single let on purpose: idris2 0.7.0 fails to parse two
       -- consecutive do-lets when the do-block is a case-alternative

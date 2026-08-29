@@ -96,9 +96,13 @@ handwritten. The seam's assurance is bounded by its weaker Zig side even when
 the Idris2 contract contains checked proofs.
 
 UMS already has Idris2 ABI modules and a Zig FFI, but the chain is not yet
-fully compliant: contract-to-implementation generation is incomplete and the
-Zig layer directly uses `std.fs` and `std.io`, which the estate hexadeca purity
-gate rejects. These are recorded gaps, not proof or compliance claims.
+fully integrated: no canonical `unified-hexadeca-api` implementation can be
+located in the estate, and contract-to-implementation/header generation is
+incomplete. Hypatia's project-local sixteen-transport connector is reference
+material, not an authoritative filesystem or stream abstraction. Zig's direct
+`std.fs` and `std.io` calls are therefore ordinary implementation dependencies,
+not evidence either for or against compliance with an unavailable API. These
+are recorded gaps, not proof or compliance claims.
 
 UMS has no BEAM runtime. If a future Elixir/BEAM adapter needs native compute,
 it must use the estate SNIF WebAssembly sandbox and never a raw NIF. This rule

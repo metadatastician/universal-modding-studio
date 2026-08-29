@@ -23,11 +23,11 @@ and the repo's CI workflows — evidence over intuition, no aspirational grading
 | Chronicles of Slavia profile | D | Design fixture | Reflection and isolation are tested against a minimal Zone A fixture; no UMS compiler, loader or runtime integration exists. | 2026-07-25 |
 | Enaction adapter | X | Designed only | Typed preview seam and request schema exist; no real adapter or loader exists. | 2026-07-25 |
 | Generation source of truth (`config/*.ncl`) | C | Alpha-stable | `config-check` typechecks every source AND requires all three `config/bad/bad_*.ncl` negative fixtures to be rejected; `gen-check` diffs generated artifacts and fails when `nickel` is absent rather than skipping. Gated by `config-gen.yml`. | 2026-07-22 |
-| Zig FFI (`ffi/zig/`) | D | Compatibility FFI | 24 integration tests are CI-gated and Zig 0.14.0 is pinned. The FFI is not yet unified-hexadeca compliant: it uses `std.fs`/`std.io`, and the Idris2-to-generated-header chain is incomplete. | 2026-08-29 |
+| Zig FFI (`ffi/zig/`) | D | Compatibility FFI | 24 integration tests are CI-gated and Zig 0.14.0 is pinned. Unified-hexadeca integration and the Idris2-to-generated-header chain remain incomplete; no canonical `unified-hexadeca-api` implementation is currently locatable, so compliance is not claimed or approximated. | 2026-08-29 |
 | Licence hygiene gate | C | Alpha-stable | Three steps, each negative-tested: a planted MPL header, a truncated LICENSE and an unattributed JSON file each make it fail. Polarity inverted with the AGPL relicence. | 2026-07-22 |
-| Idris2 ABI (`abi/`) | C | Beta | All 17 modules typecheck under `idris-ci.yml`, including `ProvenBridge`; the extractor test executable passes 40/40. `Validation.idr` now has total `Dec`-returning deciders and constructs `ValidatedLevel`; the extractor path still returns raw `LevelData` and is not thereby proved valid. No `believe_me`, `postulate` or `assert_total`. Caveat: CI builds against a `proven` with `Proven.SafeMath.Proofs` removed, disclosed in `scripts/proven-min.ipkg`. | 2026-08-29 |
+| Idris2 ABI (`abi/`) | C | Beta | All 17 modules typecheck under `idris-ci.yml`, including `ProvenBridge`. Raw JSON extraction is private; the exported parser admits only `ValidatedLevel` values after all four `Dec` procedures construct their witnesses. The extractor executable checks full-section decoding, malformed input, and a planted rejection for each witness class. Zig parser/representation parity remains unproved. No `believe_me`, `postulate` or `assert_total`. Caveat: CI builds against a `proven` with `Proven.SafeMath.Proofs` removed, disclosed in `scripts/proven-min.ipkg`. | 2026-08-29 |
 | SPARK/GNATprove reference model (`spark/`) | X | — | Does not exist. Decided in ADR-0003 (§3) and not started; `gnatprove` is not installed on the development machine. | 2026-07-22 |
-| Zig hexadeca connector | X | — | Does not exist. `ffi/zig/` is the existing 11-file C-ABI surface, not the 16-protocol unified connector. | 2026-07-22 |
+| Zig hexadeca connector | X | Blocked dependency | Does not exist. Estate reconnaissance cannot locate a canonical `unified-hexadeca-api`; Hypatia's project-local 16-transport pattern is not silently copied here. | 2026-08-29 |
 | Interactive studio frontend | X | — | 0% — not started. The engine has no interactive consumer. Supersedes the former "AffineScript shell" row: IDApTIK uses Bevy, but UMS remains an independent authoring application and its portal is currently a design reference. | 2026-07-25 |
 | Reversible VM (`dlc/vm/`, `.affine`) | X | — | Has never compiled. No AffineScript toolchain is wired to this repo; the `.affine` sources have never been exercised by anything, so its declared `every-instruction-has-an-inverse` guarantee has never been checked. | 2026-07-22 |
 
@@ -39,25 +39,24 @@ is still **D**, but the reason has changed completely.
 The 2026-07-20 assessment was held at D by three things: the engine was Python
 with no CI, the DLC schema check ran local-only, and the ABI was 16/17. **All
 three are now resolved.** The engine and the validator are Rust/Crusoe, CI-gated, with
-profile, engine and package negative tests proving the gates can fail.
+profile, engine and package negative tests demonstrating the gates can fail.
 
 `abi/ProvenBridge.idr` landed on 2026-07-20 (`c86c84c`) and its extractors on
 2026-07-21 (`a8b7663`). It has no typed holes, `idaptik-ums.ipkg` declares
 `depends = proven` uncommented, and `idris-ci.yml` has been green on every run
 since 2026-07-22. **The D grade was held for five days by this table, not by
 the tree** — the row was never re-run after the work landed. Re-assessed
-2026-07-27 against a local reproduction of the CI pipeline: 17/17 modules
-typecheck, extractor tests 40/40.
+2026-08-29 against a local reproduction of the CI pipeline: 17/17 modules
+typecheck, extractor/admission tests 44/44.
 
 What remains:
 
-- **`abi/Validation.idr` deciders exist; extraction remains open.** Total
-  `Dec`-returning procedures now construct witnesses for the four
-  `ValidatedLevel` obligations, with compile-time positive and negative
-  examples. This confirms those functions typecheck and decide the encoded
-  propositions; it does not prove the Zig implementation or raw extractor
-  path uses them. `ProvenBridge` still returns raw `LevelData`, so the
-  end-to-end extraction obligation remains explicit.
+- **The Idris extraction boundary is closed; cross-language parity remains
+  open.** Total `Dec`-returning procedures construct witnesses for the four
+  `ValidatedLevel` obligations. `ProvenBridge` keeps raw extraction private
+  and exports only `parseValidatedLevelJson`; planted semantic negatives cover
+  every witness class. This confirms the named Idris2 path. It does not prove
+  that Zig's independently implemented parser and layouts are equivalent.
 - **Not X or E:** every component above the D-line runs real, failing-able
   tests that currently pass, with documented scope.
 - The X-graded components (frontends, SPARK model, hexadeca connector, VM) are
@@ -99,10 +98,11 @@ stated rather than papered over.
 - **PROJECT D → C: done, 2026-07-27.** `ProvenBridge` landed on 2026-07-20 and
   the tree and the module-count claim now agree. No descope ADR is needed:
   descoping something that works would be the wrong record.
-- **PROJECT C -> B:** require the extraction/FFI path to consume a
-  `ValidatedLevel`, generate the C header from the Idris2-owned ABI, and prove
-  parity with the unified-hexadeca Zig implementation. The deciders now exist;
-  wiring and cross-language evidence do not.
+- **PROJECT C -> B:** the Idris extraction boundary now consumes a
+  `ValidatedLevel`. Remaining work is a typed Idris renderer for the UMS ABI,
+  generated-header drift checks, Zig representation/parser parity, and
+  integration with a canonical unified-hexadeca implementation once one
+  exists. The local Idris admission result is not cross-language proof.
 - **ai-edit C → B:** grow a real consumer, and close the type-6 loop so the
   proposer consults `solve()` in-process rather than across a boundary.
 - **DLC bridge C -> B:** keep the implemented cross-repository round trip green

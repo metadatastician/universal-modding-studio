@@ -206,8 +206,9 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
   installed on the development machine.
 
 | Zig hexadeca connector
-| *Not started.* `ffi/zig/` is the existing 11-file C-ABI surface, not the
-  16-protocol unified connector.
+| *Blocked on an unlocated canonical dependency.* `ffi/zig/` is the existing
+  11-file C-ABI surface. Hypatia's 16-transport connector is project-local
+  reference material, not an authoritative implementation to copy.
 
 | Interactive studio frontend
 | *Not started.* The engine has no interactive consumer.
@@ -218,18 +219,17 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
   `every-instruction-has-an-inverse`; nothing has ever checked that.
 
 | Idris2 `abi/Validation.idr`
-| Declares six proof-witness types and a `ValidatedLevel` record with four
-  erased proof fields, and contains **zero top-level function signatures**.
-  Nothing constructs a witness; nothing outside the module mentions
-  `ValidatedLevel`; the extractor returns raw `LevelData`. The invariants are
-  stated, never established. It typechecks because declaring a datatype always
-  does. (`ProvenBridge` itself landed 2026-07-20 and is 17/17 — the earlier
-  "2 typed holes" entry here was stale for five days.)
+| Contains total `Dec` procedures for the four cross-domain invariants and
+  constructs a `ValidatedLevel` with erased witnesses. `ProvenBridge` keeps
+  raw extraction private and exports `parseValidatedLevelJson`; its executable
+  tests plant a failing value for every witness class. This establishes the
+  Idris2 admission path only. The Zig parser and layouts are separately
+  implemented and do not yet have cross-language parity evidence.
 
 | UMS → game round trip
-| Executed successfully on 2026-07-27: `just roundtrip-idaptik` compiles the
-  profile source, IDApTIK's real loader accepts it, and the run snapshots,
-  restores and replays identically. **Not yet gated in CI**, so it is
-  demonstrated but not defended against regression. ADR-0014's condition is
-  met only when it runs there.
+| CI-gated and rerun against merged IDApTIK main on 2026-08-29:
+  `just roundtrip-idaptik` compiles twice, confirms all eight authored field
+  groups survive acceptance, then executes, snapshots, restores and replays
+  identically. This tests that concrete fixture and path; it is not a proof of
+  arbitrary authored content.
 |===
