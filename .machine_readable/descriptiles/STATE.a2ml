@@ -26,14 +26,14 @@ enaction-adapter = { status = "designed", notes = "Trait and schema seam only." 
 studio-ui = { status = "aspirational", notes = "Specified multi-lens target; no frontend." }
 dependency-boundaries = { status = "tested", notes = "scripts/check-architecture-boundaries.sh rejects reverse runtime/UI dependencies and cross-game profile imports; hard-fails on a missing sibling." }
 end-to-end-roundtrip = { status = "gated", notes = "Rerun against merged IDApTIK main on 2026-08-29. The gate compiles twice, compares all eight authored field groups with the accepted model, then executes, snapshots, restores and replays identically. Evidence is scoped to that fixture and path." }
-idris2-abi = { status = "machine-checked-scope", notes = "17 modules typecheck; raw extraction is private and the exported parser returns ValidatedLevel only after four Dec procedures construct witnesses. Zig representation/parser parity remains open, so this is not end-to-end proof." }
-zig-ffi = { status = "tested-unintegrated", notes = "Integration tests exist. No canonical unified-hexadeca-api is locatable, and generated-header ownership plus Idris/Zig parity remain incomplete; compliance is not claimed." }
+idris2-abi = { status = "machine-checked-scope", notes = "18 modules typecheck; raw extraction is private and the exported parser returns ValidatedLevel only after four Dec procedures construct witnesses. CABI is a total bounded-header renderer. Universal parser equivalence and semantic-record-to-fixed-layout refinement remain open, so this is not end-to-end proof." }
+zig-ffi = { status = "tested-unintegrated", notes = "28 integration tests include all bounded struct layouts and enum discriminants imported from the generated Idris2 header. A planted width drift fails. No canonical unified-hexadeca-api is locatable; cross-platform ABI proof and hexadeca compliance are not claimed." }
 snif-boundary = { status = "not-applicable", notes = "No BEAM runtime in UMS. Future BEAM native compute must use SNIFs; raw NIFs are forbidden." }
 
 [route-to-mvp]
 remaining = [
   { item = "Prove representation and parser parity between the Idris2-owned ValidatedLevel admission path and the Zig implementation", priority = "high" },
-  { item = "Implement a typed Idris ABI renderer and generated-header drift gate; Zig 0.14 advertises -femit-h but emits no header for a positive Zig-source probe", priority = "high" },
+  { item = "Extend the generated Idris2 header model beyond bounded LevelData to auxiliary multiplayer, game-systems and query ABI surfaces, with the same planted drift controls", priority = "medium" },
   { item = "Integrate the Zig FFI with unified-hexadeca-api once its canonical implementation and versioned contract can be located; do not fabricate a local substitute", priority = "high" },
   { item = "Close IDApTIK modelled-versus-editable gaps", priority = "high" },
   { item = "Keep Slavia reflection aligned with its authoritative repository", priority = "medium" },

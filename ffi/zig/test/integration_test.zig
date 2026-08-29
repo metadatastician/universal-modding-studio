@@ -7,6 +7,28 @@
 // exercising every exported FFI function.
 
 const std = @import("std");
+const c = @cImport({
+    @cInclude("idaptik_ums_level.h");
+});
+
+fn expectSameLayout(comptime ZigType: type, comptime CType: type) !void {
+    try std.testing.expectEqual(@sizeOf(ZigType), @sizeOf(CType));
+    try std.testing.expectEqual(@alignOf(ZigType), @alignOf(CType));
+    inline for (std.meta.fields(ZigType)) |zig_field| {
+        try std.testing.expectEqual(
+            @offsetOf(ZigType, zig_field.name),
+            @offsetOf(CType, zig_field.name),
+        );
+    }
+}
+
+fn expectEnumValues(comptime ZigType: type, comptime c_values: anytype) !void {
+    const zig_fields = std.meta.fields(ZigType);
+    try std.testing.expectEqual(zig_fields.len, c_values.len);
+    inline for (zig_fields, 0..) |zig_field, index| {
+        try std.testing.expectEqual(zig_field.value, c_values[index]);
+    }
+}
 const types = @import("types");
 const validate = @import("validate");
 const main = @import("main");
@@ -534,6 +556,63 @@ test "complete C LevelData survives JSON round-trip without field loss" {
     const second_len = main.idaptik_ums_serialize_level(second, &second_json, second_json.len);
     try std.testing.expectEqual(first_len, second_len);
     try std.testing.expectEqualSlices(u8, first_json[0..first_len], second_json[0..second_len]);
+}
+
+test "generated Idris2 C header matches every bounded LevelData Zig layout" {
+    try expectSameLayout(types.IpAddress, c.ums_ip_address);
+    try expectSameLayout(types.Percentage, c.ums_percentage);
+    try expectSameLayout(types.WorldX, c.ums_world_x);
+    try expectSameLayout(types.ItemKind, c.ums_item_kind);
+    try expectSameLayout(types.DeviceSpec, c.ums_device_spec);
+    try expectSameLayout(types.OptionalIpAddress, c.ums_optional_ip_address);
+    try expectSameLayout(types.DefenceFlags, c.ums_defence_flags);
+    try expectSameLayout(types.DeviceDefenceConfig, c.ums_device_defence_config);
+    try expectSameLayout(types.Zone, c.ums_zone);
+    try expectSameLayout(types.ZoneTransition, c.ums_zone_transition);
+    try expectSameLayout(types.Item, c.ums_item);
+    try expectSameLayout(types.WorldItem, c.ums_world_item);
+    try expectSameLayout(types.GuardPlacement, c.ums_guard_placement);
+    try expectSameLayout(types.DogPlacement, c.ums_dog_placement);
+    try expectSameLayout(types.DronePlacement, c.ums_drone_placement);
+    try expectSameLayout(types.AssassinConfig, c.ums_assassin_config);
+    try expectSameLayout(types.MissionObjective, c.ums_mission_objective);
+    try expectSameLayout(types.MissionConfig, c.ums_mission_config);
+    try expectSameLayout(types.WiringChallenge, c.ums_wiring_challenge);
+    try expectSameLayout(types.PhysicalConfig, c.ums_physical_config);
+    try expectSameLayout(types.LevelData, c.ums_level_data);
+    try expectSameLayout(types.ValidationResult, c.ums_validation_result);
+
+    try std.testing.expectEqual(@sizeOf(types.SecurityLevel), @sizeOf(c.ums_security_level));
+    try std.testing.expectEqual(@sizeOf(types.DeviceKind), @sizeOf(c.ums_device_kind));
+    try std.testing.expectEqual(@sizeOf(types.GuardRank), @sizeOf(c.ums_guard_rank));
+    try std.testing.expectEqual(@sizeOf(types.DogBreed), @sizeOf(c.ums_dog_breed));
+    try std.testing.expectEqual(@sizeOf(types.DroneArchetype), @sizeOf(c.ums_drone_archetype));
+    try std.testing.expectEqual(@sizeOf(types.AlertLevel), @sizeOf(c.ums_alert_level));
+    try std.testing.expectEqual(@sizeOf(types.ItemCondition), @sizeOf(c.ums_item_condition));
+    try std.testing.expectEqual(@sizeOf(types.CableType), @sizeOf(c.ums_cable_type));
+    try std.testing.expectEqual(@sizeOf(types.AdapterType), @sizeOf(c.ums_adapter_type));
+    try std.testing.expectEqual(@sizeOf(types.ToolType), @sizeOf(c.ums_tool_type));
+    try std.testing.expectEqual(@sizeOf(types.ModuleType), @sizeOf(c.ums_module_type));
+    try std.testing.expectEqual(@sizeOf(types.ConsumableType), @sizeOf(c.ums_consumable_type));
+    try std.testing.expectEqual(@sizeOf(types.ItemKindTag), @sizeOf(c.ums_item_kind_tag));
+    try std.testing.expectEqual(@sizeOf(types.WiringType), @sizeOf(c.ums_wiring_type));
+    try std.testing.expectEqual(@sizeOf(types.ValidationCheck), @sizeOf(c.ums_validation_check));
+
+    try expectEnumValues(types.SecurityLevel, .{ c.UMS_SECURITY_OPEN, c.UMS_SECURITY_WEAK, c.UMS_SECURITY_MEDIUM, c.UMS_SECURITY_STRONG });
+    try expectEnumValues(types.DeviceKind, .{ c.UMS_DEVICE_LAPTOP, c.UMS_DEVICE_DESKTOP, c.UMS_DEVICE_SERVER, c.UMS_DEVICE_ROUTER, c.UMS_DEVICE_SWITCH, c.UMS_DEVICE_FIREWALL, c.UMS_DEVICE_CAMERA, c.UMS_DEVICE_ACCESS_POINT, c.UMS_DEVICE_PATCH_PANEL, c.UMS_DEVICE_POWER_SUPPLY, c.UMS_DEVICE_PHONE_SYSTEM, c.UMS_DEVICE_FIBRE_HUB });
+    try expectEnumValues(types.GuardRank, .{ c.UMS_GUARD_BASIC, c.UMS_GUARD_ENFORCER, c.UMS_GUARD_ANTI_HACKER, c.UMS_GUARD_SENTINEL, c.UMS_GUARD_ASSASSIN, c.UMS_GUARD_ELITE, c.UMS_GUARD_SECURITY_CHIEF, c.UMS_GUARD_RIVAL_HACKER });
+    try expectEnumValues(types.DogBreed, .{ c.UMS_DOG_PATROL, c.UMS_DOG_BLOODHOUND, c.UMS_DOG_ROBO });
+    try expectEnumValues(types.DroneArchetype, .{ c.UMS_DRONE_HELPER, c.UMS_DRONE_HUNTER, c.UMS_DRONE_KILLER });
+    try expectEnumValues(types.AlertLevel, .{ c.UMS_ALERT_GREEN, c.UMS_ALERT_YELLOW, c.UMS_ALERT_ORANGE, c.UMS_ALERT_RED });
+    try expectEnumValues(types.ItemCondition, .{ c.UMS_CONDITION_PRISTINE, c.UMS_CONDITION_GOOD, c.UMS_CONDITION_WORN, c.UMS_CONDITION_DAMAGED, c.UMS_CONDITION_BROKEN });
+    try expectEnumValues(types.CableType, .{ c.UMS_CABLE_ETHERNET, c.UMS_CABLE_FIBRE_LC, c.UMS_CABLE_FIBRE_SC, c.UMS_CABLE_SERIAL, c.UMS_CABLE_USB, c.UMS_CABLE_UNIVERSAL });
+    try expectEnumValues(types.AdapterType, .{ c.UMS_ADAPTER_ETHERNET_TO_FIBRE, c.UMS_ADAPTER_USB_TO_SERIAL, c.UMS_ADAPTER_MEDIA_CONVERTER });
+    try expectEnumValues(types.ToolType, .{ c.UMS_TOOL_CRIMPER, c.UMS_TOOL_SPLICER, c.UMS_TOOL_MULTIMETER, c.UMS_TOOL_WIRE_CUTTER, c.UMS_TOOL_DEBUGGER });
+    try expectEnumValues(types.ModuleType, .{ c.UMS_MODULE_SFP, c.UMS_MODULE_GBIC, c.UMS_MODULE_QSFP, c.UMS_MODULE_TRANSCEIVER });
+    try expectEnumValues(types.ConsumableType, .{ c.UMS_CONSUMABLE_BATTERY_PACK, c.UMS_CONSUMABLE_EMP, c.UMS_CONSUMABLE_SMOKE_GRENADE, c.UMS_CONSUMABLE_DECRYPTOR });
+    try expectEnumValues(types.ItemKindTag, .{ c.UMS_ITEM_KIND_CABLE, c.UMS_ITEM_KIND_ADAPTER, c.UMS_ITEM_KIND_TOOL, c.UMS_ITEM_KIND_MODULE, c.UMS_ITEM_KIND_STORAGE, c.UMS_ITEM_KIND_CONSUMABLE, c.UMS_ITEM_KIND_KEYCARD, c.UMS_ITEM_KIND_RADIO });
+    try expectEnumValues(types.WiringType, .{ c.UMS_WIRING_PATCH_PANEL, c.UMS_WIRING_SWITCH_BACKPLANE, c.UMS_WIRING_SERVER_RACK, c.UMS_WIRING_FIBRE_SPLICING, c.UMS_WIRING_PBX_COMMS });
+    try expectEnumValues(types.ValidationCheck, .{ c.UMS_VALIDATION_DEFENCE_TARGETS, c.UMS_VALIDATION_GUARDS_IN_ZONES, c.UMS_VALIDATION_ZONES_ORDERED, c.UMS_VALIDATION_PBX_CONSISTENT });
 }
 
 test "C JSON deserializer rejects unrepresentable documents" {

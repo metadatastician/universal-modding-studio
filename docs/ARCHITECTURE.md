@@ -123,8 +123,10 @@ The shared corpus described in `docs/ABI-PARITY.adoc` gives bounded tested
 agreement between Idris2 admission and the exported Zig JSON endpoint. The
 separate `docs/ABI-ROUNDTRIP.adoc` corpus confirms complete active-field
 C-struct round-tripping. Neither closes universal parser equivalence or raw
-layout proof. Generated-header drift remains blocked by the pinned toolchain,
-and unified-hexadeca integration remains unstarted.
+layout proof. The Idris2 renderer and generated-header parity gate described in
+`docs/ABI-HEADER.adoc` now test the bounded C/Zig layout; they do not turn that
+layout into a cross-platform theorem. Unified-hexadeca integration remains
+unstarted.
 
 ## Host-neutral model boundary
 

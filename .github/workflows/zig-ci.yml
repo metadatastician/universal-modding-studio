@@ -24,6 +24,7 @@ on:
     branches: [main, master]
     paths:
       - 'ffi/zig/**'
+      - 'generated/abi/**'
       - 'mise.toml'
       - 'Justfile'
       - '.github/workflows/zig-ci.yml'
@@ -31,6 +32,7 @@ on:
     branches: [main, master]
     paths:
       - 'ffi/zig/**'
+      - 'generated/abi/**'
       - 'mise.toml'
       - 'Justfile'
       - '.github/workflows/zig-ci.yml'

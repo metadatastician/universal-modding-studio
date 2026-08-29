@@ -1,0 +1,84 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= Generated bounded LevelData C ABI header
+:toc:
+
+== Implemented authority chain
+
+Idris2 0.7 has no general C-header backend. UMS therefore uses the established
+estate pattern implemented by `enaction-engine`: `abi/CABI.idr` is a total,
+typechecked renderer over an explicit C declaration model. Running
+`scripts/generate-abi-header.sh` builds that Idris2 executable and writes
+`generated/abi/idaptik_ums_level.h`. The generated file is committed so C
+consumers do not need Idris2 installed.
+
+`scripts/generate-abi-header.sh --check` renders into a temporary directory and
+compares the result byte-for-byte with the committed header. `just
+abi-header-check` exposes that drift gate, and the Idris2 CI job runs it after
+typechecking the package.
+
+The generated surface contains:
+
+* the fixed capacities used by the bounded `LevelData` representation;
+* all 15 one-byte enum representations and their 78 discriminant constants;
+* all 22 structs used by the bounded level ABI, including explicit padding;
+* the 13 lifecycle, population, validation and JSON functions exported by
+  `ffi/zig/src/main.zig`.
+
+The multiplayer, game-systems and auxiliary query exports are not in this
+header. They are separate ABI surfaces and remain an explicit extension gap;
+this header does not imply coverage of every symbol in the Zig library.
+
+== Executable parity evidence
+
+The Zig integration suite imports the generated header using `@cImport`. For
+each of the 22 C structs it compares C and Zig size, alignment and every named
+field offset. It also compares the width and every declared discriminant of all
+15 one-byte enums. The suite currently contains 28 tests.
+
+A planted negative control changed the generated `ums_world_x.position` from
+`double` to `uint32_t`. The parity test failed with the observed mismatch
+`expected 8, found 4`; regeneration restored the committed header. This
+confirms that the gate can detect at least that class of width drift.
+
+== Guarantee boundary
+
+The Idris2 renderer is implemented and typechecked; header freshness is
+byte-compared; layout and discriminant parity are tested on the CI target. None
+of those facts is a universal proof of C ABI equivalence across all compilers,
+architectures or future targets.
+
+The physical C declarations in `CABI.idr` are an explicit representation model
+for the semantic records in the other Idris2 modules. Idris2 does not prove
+that, for example, `Level.LevelData`'s lists are represented by the selected
+fixed-capacity arrays, nor can it machine-check the foreign C compiler's layout.
+Those are deliberate refinement and executable-parity obligations. Scaffolding
+is not reported as proof.
+
+== Reproduction
+
+[source,shell]
+----
+idris2 --typecheck idaptik-ums.ipkg
+./scripts/generate-abi-header.sh --check
+
+cd ffi/zig
+ZIG_GLOBAL_CACHE_DIR=/tmp/ums-zig-header-global \
+  ZIG_LOCAL_CACHE_DIR=/tmp/ums-zig-header-local \
+  mise exec zig@0.14.0 -- zig build test --summary all
+----
+
+== Estate integration boundaries
+
+No unified-hexadeca integration is claimed. The bounded reconnaissance horizon
+was the locally checked-out estate plus the complete 36-repository
+`metadatastician` organisation listing obtained during this stage. Hypatia has
+a project-local sixteen-connector pattern, but its connector starts are
+documented as log-only stubs. `authority-watch` independently records the
+canonical `unified-hexadeca-api` dependency as blocked because no canonical
+repository was located. UMS will not copy or rename either substitute into an
+authoritative API.
+
+Any future Rust consumer is a Rust/Crusoe consumer. Any future BEAM-native
+adapter must use SNIFs and never raw NIFs.

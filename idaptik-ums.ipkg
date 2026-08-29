@@ -24,6 +24,10 @@ modules = Primitives,
           Validation,
           Multiplayer,
           GameSystems,
-          ProvenBridge
+          ProvenBridge,
+          CABI
 
 depends = proven
+
+main = CABI
+executable = idaptik-ums-abi-gen

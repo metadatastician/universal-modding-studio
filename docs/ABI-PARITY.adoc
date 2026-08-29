@@ -37,9 +37,10 @@ complete wire representation; see `docs/ABI-ROUNDTRIP.adoc`. That executable
 test is not a universal parser-equivalence proof and does not compare padding
 or inactive union payload bytes.
 
-The estate FFI chain remains incomplete. Idris2 0.7 cannot export C ABI headers,
-and Zig 0.14's advertised `-femit-h` produced no header in a planted probe. No
-generated-header parity is claimed. No canonical unified-hexadeca API has been
+Idris2 0.7 still cannot export C ABI headers directly. The repository now uses
+a total Idris2 declaration renderer and executable Zig/C parity checks for the
+bounded `LevelData` surface; see `docs/ABI-HEADER.adoc`. This is tested layout
+parity, not a universal ABI proof. No canonical unified-hexadeca API has been
 located for the Zig implementation to adopt, and no compatibility with an
 approximation is claimed. If a BEAM-native consumer is introduced later, it
 must use the estate SNIF sandbox and never a raw NIF. Rust consumers are

@@ -9,6 +9,8 @@ on:
       - 'abi/**'
       - 'idaptik-ums.ipkg'
       - 'extractors-test.ipkg'
+      - 'generated/abi/**'
+      - 'scripts/generate-abi-header.sh'
       - 'scripts/proven-min.ipkg'
       - '.github/workflows/idris-ci.yml'
   pull_request:
@@ -16,6 +18,8 @@ on:
       - 'abi/**'
       - 'idaptik-ums.ipkg'
       - 'extractors-test.ipkg'
+      - 'generated/abi/**'
+      - 'scripts/generate-abi-header.sh'
       - 'scripts/proven-min.ipkg'
       - '.github/workflows/idris-ci.yml'
   workflow_dispatch:
@@ -61,6 +65,8 @@ jobs:
           cd /tmp/proven && idris2 --install proven-min.ipkg
       - name: Typecheck ABI package
         run: idris2 --typecheck idaptik-ums.ipkg
+      - name: Check generated C header drift
+        run: ./scripts/generate-abi-header.sh --check
       - name: Build and run extractor tests
         # Executes the ProvenBridge JSON extractors against a fixture
         # covering every LevelData section plus negative fixtures —
