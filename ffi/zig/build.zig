@@ -40,6 +40,16 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const json_codec_mod = b.addModule("json_codec", .{
+        .root_source_file = b.path("src/json_codec.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "types", .module = types_mod },
+            .{ .name = "json_admission", .module = json_admission_mod },
+        },
+    });
+
     const ipc_handlers_mod = b.addModule("ipc_handlers", .{
         .root_source_file = b.path("src/ipc_handlers.zig"),
         .target = target,
@@ -110,6 +120,7 @@ pub fn build(b: *std.Build) void {
         .{ .name = "types", .module = types_mod },
         .{ .name = "validate", .module = validate_mod },
         .{ .name = "json_admission", .module = json_admission_mod },
+        .{ .name = "json_codec", .module = json_codec_mod },
         .{ .name = "ipc_handlers", .module = ipc_handlers_mod },
         .{ .name = "inventory", .module = inventory_mod },
         .{ .name = "enemies", .module = enemies_mod },
@@ -176,6 +187,7 @@ pub fn build(b: *std.Build) void {
                 .{ .name = "types", .module = types_mod },
                 .{ .name = "validate", .module = validate_mod },
                 .{ .name = "main", .module = main_mod },
+                .{ .name = "json_codec", .module = json_codec_mod },
                 .{ .name = "inventory", .module = inventory_mod },
                 .{ .name = "enemies", .module = enemies_mod },
                 .{ .name = "mission", .module = mission_mod },

@@ -10,6 +10,7 @@ const std = @import("std");
 const types = @import("types");
 const validate = @import("validate");
 const main = @import("main");
+const json_codec = @import("json_codec");
 
 // =========================================================================
 // Helpers
@@ -20,6 +21,11 @@ fn createTestLevel() *types.LevelData {
     return main.idaptik_ums_create_level() orelse {
         @panic("idaptik_ums_create_level returned null");
     };
+}
+
+fn expectCStrEqual(expected: []const u8, actual: ?[*:0]const u8) !void {
+    try std.testing.expect(actual != null);
+    try std.testing.expectEqualStrings(expected, std.mem.span(actual.?));
 }
 
 // =========================================================================
@@ -376,7 +382,6 @@ test "defence config referencing existing device passes" {
         .security = .strong,
     };
     _ = main.idaptik_ums_add_device(level, &dev);
-
     level.device_defences[0] = .{
         .ip = types.IpAddress.init(10, 0, 0, 50),
         .flags = std.mem.zeroes(types.DefenceFlags),
@@ -403,8 +408,19 @@ test "serialize produces non-empty JSON" {
         .security = .medium,
     };
     _ = main.idaptik_ums_add_device(level, &dev);
+    const mission = types.MissionConfig{
+        .mission_id = "serialization-smoke",
+        .location_id = "test-lab",
+        .objectives = null,
+        .objectives_len = 0,
+        .has_time_limit = false,
+        .time_limit = 0,
+    };
+    try std.testing.expect(main.idaptik_ums_set_mission(level, &mission));
 
     var buf: [8192]u8 = undefined;
+    var diagnostic_stream = std.io.fixedBufferStream(&buf);
+    try json_codec.serializeLevelJson(std.testing.allocator, level, diagnostic_stream.writer());
     const written = main.idaptik_ums_serialize_level(level, &buf, buf.len);
     try std.testing.expect(written > 0);
 
@@ -441,6 +457,95 @@ test "shared Idris2-Zig JSON admission corpus has identical outcomes" {
         defer allocator.free(fixture);
         try std.testing.expect(!main.idaptik_ums_admit_level_json(fixture.ptr, fixture.len));
     }
+}
+
+test "complete C LevelData survives JSON round-trip without field loss" {
+    const allocator = std.testing.allocator;
+    const fixture = try std.fs.cwd().readFileAlloc(allocator, "tests/abi-roundtrip/full-c-layout.json", 1024 * 1024);
+    defer allocator.free(fixture);
+
+    // The testing allocator reports any arena or wrapper allocation that the
+    // ownership-aware destroy path fails to release.
+    const ownership_probe = try json_codec.deserializeLevelJson(allocator, fixture);
+    json_codec.destroyOwned(allocator, ownership_probe);
+
+    const first = main.idaptik_ums_deserialize_level(fixture.ptr, fixture.len) orelse return error.TestUnexpectedResult;
+    defer main.idaptik_ums_destroy_level(first);
+    try std.testing.expectEqual(@as(u32, 2), first.devices_len);
+    try expectCStrEqual("pbx-core", first.devices[0].name);
+    try std.testing.expectEqual(types.DeviceKind.phone_system, first.devices[0].kind);
+    try std.testing.expectEqual(@as(u32, 2), first.zones_len);
+    try expectCStrEqual("lobby", first.zones[0].name);
+    try std.testing.expectEqual(@as(u32, 1), first.guards_len);
+    try expectCStrEqual("lobby", first.guards[0].zone);
+    try std.testing.expectEqual(types.GuardRank.security_chief, first.guards[0].rank);
+    try std.testing.expectEqual(@as(u32, 1), first.dogs_len);
+    try std.testing.expectEqual(@as(u32, 1), first.drones_len);
+    try std.testing.expectEqual(@as(u32, 1), first.assassins_len);
+    try std.testing.expectEqual(@as(u32, 8), first.items_len);
+    try expectCStrEqual("cable", first.items[0].item.id);
+    try std.testing.expectEqual(types.ItemKindTag.cable, first.items[0].item.kind.tag);
+    try std.testing.expectEqual(types.ItemKindTag.adapter, first.items[1].item.kind.tag);
+    try std.testing.expectEqual(types.ItemKindTag.tool, first.items[2].item.kind.tag);
+    try std.testing.expectEqual(types.ItemKindTag.module_, first.items[3].item.kind.tag);
+    try std.testing.expectEqual(types.ItemKindTag.storage, first.items[4].item.kind.tag);
+    try std.testing.expectEqual(@as(u32, 4096), first.items[4].item.kind.capacity);
+    try std.testing.expectEqual(types.ItemKindTag.consumable, first.items[5].item.kind.tag);
+    try std.testing.expectEqual(types.ItemKindTag.keycard, first.items[6].item.kind.tag);
+    try expectCStrEqual("vault", first.items[6].item.kind.zone_name);
+    try std.testing.expectEqual(types.ItemKindTag.radio, first.items[7].item.kind.tag);
+    try std.testing.expectEqual(@as(u32, 1), first.wiring_len);
+    try expectCStrEqual("full-c-layout", first.mission.mission_id);
+    try expectCStrEqual("exchange", first.mission.location_id);
+    try std.testing.expectEqual(@as(u32, 2), first.mission.objectives_len);
+    try expectCStrEqual("enter", first.mission.objectives.?[0].id);
+    try std.testing.expect(first.mission.objectives.?[0].required);
+    try std.testing.expect(first.mission.has_time_limit);
+    try std.testing.expectEqual(@as(u32, 600), first.mission.time_limit);
+    try std.testing.expectEqual(@as(u32, 5), first.physical.number_of_covert_links);
+    try std.testing.expectEqual(@as(u32, 2), first.zone_transitions_len);
+    try expectCStrEqual("vault", first.zone_transitions[1].to_zone);
+    try std.testing.expectEqual(@as(u32, 1), first.device_defences_len);
+    try std.testing.expect(first.device_defences[0].flags.tamper_proof);
+    try std.testing.expect(first.device_defences[0].flags.decoy);
+    try std.testing.expect(first.device_defences[0].flags.canary);
+    try std.testing.expect(first.device_defences[0].flags.one_way_mirror);
+    try std.testing.expect(first.device_defences[0].flags.kill_switch);
+    try std.testing.expect(first.device_defences[0].flags.failover_target.has_value);
+    try std.testing.expect(first.device_defences[0].flags.cascade_trap.has_value);
+    try std.testing.expect(first.device_defences[0].flags.mirror_target.has_value);
+    const whitelist = std.mem.span(first.device_defences[0].flags.instruction_whitelist.?);
+    try std.testing.expectEqual(@as(usize, 2), whitelist.len);
+    try expectCStrEqual("dial", whitelist[0]);
+    try std.testing.expect(first.device_defences[0].flags.has_time_bomb);
+    try std.testing.expect(first.device_defences[0].flags.has_undo_immunity);
+    try std.testing.expect(first.has_pbx);
+    try std.testing.expect(first.pbx_ip.eql(types.IpAddress.init(10, 8, 0, 1)));
+    try std.testing.expectEqual(@as(f64, 33.5), first.pbx_world_x.position);
+
+    var first_json: [65536]u8 = undefined;
+    const first_len = main.idaptik_ums_serialize_level(first, &first_json, first_json.len);
+    try std.testing.expect(first_len > 0);
+    try std.testing.expect(main.idaptik_ums_admit_level_json(&first_json, first_len));
+
+    const second = main.idaptik_ums_deserialize_level(&first_json, first_len) orelse return error.TestUnexpectedResult;
+    defer main.idaptik_ums_destroy_level(second);
+    var second_json: [65536]u8 = undefined;
+    const second_len = main.idaptik_ums_serialize_level(second, &second_json, second_json.len);
+    try std.testing.expectEqual(first_len, second_len);
+    try std.testing.expectEqualSlices(u8, first_json[0..first_len], second_json[0..second_len]);
+}
+
+test "C JSON deserializer rejects unrepresentable documents" {
+    const missing_mission =
+        \\{"physical":{"ground_y":0,"world_width":1,"interaction_distance":1,"has_power_system":false,"has_security_cameras":false,"covert_links":0}}
+    ;
+    try std.testing.expect(main.idaptik_ums_deserialize_level(missing_mission.ptr, missing_mission.len) == null);
+
+    const malformed_ip =
+        \\{"devices":[{"kind":"server","ip":"10.0.0.999","name":"bad","security":"strong"}],"mission":{"mission_id":"m","location_id":"l"},"physical":{"ground_y":0,"world_width":1,"interaction_distance":1,"has_power_system":false,"has_security_cameras":false,"covert_links":0}}
+    ;
+    try std.testing.expect(main.idaptik_ums_deserialize_level(malformed_ip.ptr, malformed_ip.len) == null);
 }
 
 // =========================================================================

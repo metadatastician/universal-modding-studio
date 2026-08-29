@@ -20,51 +20,51 @@ pub const AdmissionError = error{
     PbxInvalid,
 };
 
-const WireDevice = struct {
+pub const WireDevice = struct {
     kind: []const u8,
     ip: []const u8,
     name: []const u8,
     security: []const u8,
 };
 
-const WireZone = struct {
+pub const WireZone = struct {
     name: []const u8,
     security_tier: u32,
 };
 
-const WireGuard = struct {
+pub const WireGuard = struct {
     world_x: f64,
     zone: []const u8,
     rank: []const u8,
     patrol_radius: f64,
 };
 
-const WireDog = struct {
+pub const WireDog = struct {
     world_x: f64,
     breed: []const u8,
     patrol_radius: f64,
 };
 
-const WireDrone = struct {
+pub const WireDrone = struct {
     world_x: f64,
     archetype: []const u8,
     altitude: f64,
 };
 
-const WireAssassin = struct {
+pub const WireAssassin = struct {
     spawn_x: f64,
     ambush_count: u32,
     retreat_threshold: u32,
 };
 
-const WireItemKind = struct {
+pub const WireItemKind = struct {
     type: []const u8,
     sub_type: ?[]const u8 = null,
     capacity: ?u32 = null,
     zone: ?[]const u8 = null,
 };
 
-const WireItem = struct {
+pub const WireItem = struct {
     id: []const u8,
     kind: WireItemKind,
     name: []const u8,
@@ -73,32 +73,32 @@ const WireItem = struct {
     uses_remaining: ?u32 = null,
 };
 
-const WireWorldItem = struct {
+pub const WireWorldItem = struct {
     item: WireItem,
     world_x: f64,
     container: []const u8,
 };
 
-const WireWiring = struct {
+pub const WireWiring = struct {
     kind: []const u8,
     device_ip: []const u8,
     difficulty: u32,
 };
 
-const WireObjective = struct {
+pub const WireObjective = struct {
     id: []const u8,
     description: []const u8,
     required: bool,
 };
 
-const WireMission = struct {
+pub const WireMission = struct {
     mission_id: []const u8,
     location_id: []const u8,
     objectives: []const WireObjective = &.{},
     time_limit: ?u32 = null,
 };
 
-const WirePhysical = struct {
+pub const WirePhysical = struct {
     ground_y: f64,
     world_width: f64,
     interaction_distance: f64,
@@ -107,13 +107,13 @@ const WirePhysical = struct {
     covert_links: u32,
 };
 
-const WireTransition = struct {
+pub const WireTransition = struct {
     world_x: f64,
     from_zone: []const u8,
     to_zone: []const u8,
 };
 
-const WireFlags = struct {
+pub const WireFlags = struct {
     tamper_proof: bool = false,
     decoy: bool = false,
     canary: bool = false,
@@ -127,12 +127,12 @@ const WireFlags = struct {
     undo_immunity: ?u32 = null,
 };
 
-const WireDefence = struct {
+pub const WireDefence = struct {
     ip: []const u8,
     flags: WireFlags = .{},
 };
 
-const WireLevel = struct {
+pub const WireLevel = struct {
     devices: []const WireDevice = &.{},
     zones: []const WireZone = &.{},
     guards: []const WireGuard = &.{},
@@ -198,7 +198,7 @@ fn validateItemKind(kind: WireItemKind) bool {
     return std.mem.eql(u8, kind.type, "radio");
 }
 
-fn validateRepresentation(level: WireLevel) AdmissionError!void {
+pub fn validateRepresentation(level: WireLevel) AdmissionError!void {
     if (level.devices.len > 256 or level.zones.len > 64 or level.guards.len > 128 or
         level.dogs.len > 64 or level.drones.len > 64 or level.assassins.len > 16 or
         level.items.len > 512 or level.wiring.len > 128 or
@@ -278,17 +278,26 @@ fn validateWitnesses(level: WireLevel) AdmissionError!void {
 ///
 /// Success means the complete wire representation parsed and all four
 /// cross-domain conditions matched the Idris2 admission semantics. It does
-/// not claim that the legacy LevelData C-struct deserialiser is lossless.
+/// not claim universal equivalence between the two parser implementations.
 pub fn admitLevelJson(allocator: std.mem.Allocator, input: []const u8) AdmissionError!void {
+    var parsed = try parseRepresentableLevel(allocator, input);
+    defer parsed.deinit();
+
+    try validateWitnesses(parsed.value);
+}
+
+/// Parse the complete bounded representation without applying the four
+/// semantic admission witnesses. Callers own the returned parsed allocation.
+pub fn parseRepresentableLevel(allocator: std.mem.Allocator, input: []const u8) AdmissionError!std.json.Parsed(WireLevel) {
     if (input.len == 0 or input.len > max_level_json_bytes) return error.InvalidField;
     const parsed = std.json.parseFromSlice(WireLevel, allocator, input, .{
         .allocate = .alloc_always,
         .ignore_unknown_fields = true,
     }) catch return error.InvalidJson;
-    defer parsed.deinit();
+    errdefer parsed.deinit();
 
     try validateRepresentation(parsed.value);
-    try validateWitnesses(parsed.value);
+    return parsed;
 }
 
 test "shared fixture corpus matches Idris2 admission outcomes" {

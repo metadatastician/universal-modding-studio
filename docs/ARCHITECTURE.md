@@ -119,10 +119,12 @@ not by itself prove its intended invariant. Existing confirmed proof claims
 remain scoped; unimplemented deciders, extraction obligations and parity tests
 remain explicit debt.
 
-The shared corpus described in `docs/ABI-PARITY.adoc` now gives bounded tested
-agreement between Idris2 admission and the exported Zig JSON endpoint. It does
-not close universal parser equivalence, lossless C-struct round-trip parity,
-generated-header drift, or unified-hexadeca integration.
+The shared corpus described in `docs/ABI-PARITY.adoc` gives bounded tested
+agreement between Idris2 admission and the exported Zig JSON endpoint. The
+separate `docs/ABI-ROUNDTRIP.adoc` corpus confirms complete active-field
+C-struct round-tripping. Neither closes universal parser equivalence or raw
+layout proof. Generated-header drift remains blocked by the pinned toolchain,
+and unified-hexadeca integration remains unstarted.
 
 ## Host-neutral model boundary
 
