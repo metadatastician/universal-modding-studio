@@ -7,6 +7,13 @@ SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 ## [Unreleased]
 
 ### Added
+- The typechecked Idris2 ABI renderer now covers all 85 C exports, 27 structs,
+  27 enums and 142 discriminants in the Zig FFI. It generates the canonical
+  header, a compatibility include and the compiled-symbol manifest. Zig tests
+  compare every layout, discriminant and function ABI shape, while CI compares
+  all shared exports and requires all static symbols. Planted layout,
+  signature and missing-symbol controls each failed as intended; this remains
+  executable parity evidence, not universal ABI proof (2026-08-30).
 - A total Idris2 renderer now generates the bounded `LevelData` C header. CI
   rejects stale output, and the Zig suite imports the header to compare all 22
   struct layouts and all 15 enum representations. A planted `WorldX` width
@@ -60,7 +67,7 @@ SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
   found by the Rust port (2026-07-22).
 - Template self-name leak: the contractiles and several `Justfile` recipes
   declared this repository to be `rsr-template-repo` (2026-07-22).
-- `.machine_readable/6a2/STATE.a2ml` listed a *critical* todo to rewrite the
+- `.machine_readable/descriptiles/STATE.a2ml` listed a *critical* todo to rewrite the
   docs "to Gossamer", a runtime the game does not use (2026-07-22).
 
 ### Removed

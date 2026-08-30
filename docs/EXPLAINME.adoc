@@ -197,7 +197,7 @@ contract; nothing yet proves the game accepts what UMS emits.
 === "Python, TypeScript, ReScript and Go are not used"
 
 Evidence::
-`git ls-files '*.py'` is empty. `.machine_readable/6a2/AGENTIC.a2ml` forbids
+`git ls-files '*.py'` is empty. `.machine_readable/descriptiles/AGENTIC.a2ml` forbids
 them. `licence-hygiene.yml` gates attributability of every tracked file.
 
 == Where the evidence stops
@@ -231,9 +231,12 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
   admission endpoint agrees on the shared six-fixture corpus, including a
   malformed-IP rejection control. This is bounded tested parity, not proof of
   universal parser equivalence. The bounded C codec now has a separate complete
-  active-field round-trip test. The generated Idris2 header gate tests all
-  bounded C/Zig struct layouts and enum discriminants, but is not a universal
-  ABI proof. See `docs/ABI-PARITY.adoc`, `docs/ABI-ROUNDTRIP.adoc` and
+  active-field round-trip test. The generated Idris2 ABI artifacts cover all
+  85 current Zig C exports, 27 structs, 27 enum representations and 142
+  discriminants; executable gates compare their layouts, function ABI shapes
+  and compiled symbols. These checks do not prove semantic type identity,
+  cross-platform ABI equivalence or universal parser equivalence. See
+  `docs/ABI-PARITY.adoc`, `docs/ABI-ROUNDTRIP.adoc` and
   `docs/ABI-HEADER.adoc`.
 
 | UMS → game round trip

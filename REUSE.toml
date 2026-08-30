@@ -19,6 +19,14 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
 
+# Generated newline-delimited data has no comment syntax. Its authority is the
+# typechecked Idris2 renderer in abi/CABI.idr.
+[[annotations]]
+path = "generated/abi/SYMBOLS"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
 [[annotations]]
 path = "merged.txt"
 precedence = "aggregate"

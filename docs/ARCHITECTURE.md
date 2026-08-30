@@ -100,10 +100,11 @@ unified-hexadeca-compatible FFI, and C headers are generated rather than
 handwritten. The seam's assurance is bounded by its weaker Zig side even when
 the Idris2 contract contains checked proofs.
 
-UMS already has Idris2 ABI modules and a Zig FFI, but the chain is not yet
-fully integrated: no canonical `unified-hexadeca-api` implementation can be
-located in the estate, and contract-to-implementation/header generation is
-incomplete. Hypatia's project-local sixteen-transport connector is reference
+UMS has Idris2 ABI modules and a Zig FFI. Its complete current Zig C-export
+surface is generated from the typechecked Idris2 declaration model and checked
+for layout, discriminant, function-shape and compiled-symbol parity. The chain
+is still not fully integrated because no canonical `unified-hexadeca-api`
+implementation can be located in the estate. Hypatia's project-local sixteen-transport connector is reference
 material, not an authoritative filesystem or stream abstraction. Zig's direct
 `std.fs` and `std.io` calls are therefore ordinary implementation dependencies,
 not evidence either for or against compliance with an unavailable API. These
@@ -123,10 +124,10 @@ The shared corpus described in `docs/ABI-PARITY.adoc` gives bounded tested
 agreement between Idris2 admission and the exported Zig JSON endpoint. The
 separate `docs/ABI-ROUNDTRIP.adoc` corpus confirms complete active-field
 C-struct round-tripping. Neither closes universal parser equivalence or raw
-layout proof. The Idris2 renderer and generated-header parity gate described in
-`docs/ABI-HEADER.adoc` now test the bounded C/Zig layout; they do not turn that
-layout into a cross-platform theorem. Unified-hexadeca integration remains
-unstarted.
+layout proof. The Idris2 renderer and generated-header parity gates described
+in `docs/ABI-HEADER.adoc` test the complete current C-export surface; they do
+not turn its representation or semantics into a cross-platform theorem.
+Unified-hexadeca integration remains unstarted.
 
 ## Host-neutral model boundary
 

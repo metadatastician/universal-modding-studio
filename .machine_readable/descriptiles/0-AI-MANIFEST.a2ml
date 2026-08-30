@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-# AI Manifest for 6a2 Directory
+# AI Manifest for Descriptiles Directory
 
 ## Purpose
 
-This manifest declares the AI-assistant context for the 6a2 machine-readable metadata directory.
+This manifest declares the AI-assistant context for the canonical descriptiles
+machine-readable metadata directory.
 
 ## Canonical Locations
 
@@ -21,4 +22,3 @@ The 6 core A2ML files MUST exist in this directory:
 - No duplicate files in root directory
 - Single source of truth: this directory is authoritative
 - No stale metadata
-

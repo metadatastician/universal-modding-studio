@@ -11,6 +11,8 @@ module CABI
 
 import Data.List
 import System
+import Multiplayer
+import GameSystems
 
 %default total
 
@@ -103,6 +105,11 @@ u8Aliases =
   , "ums_item_condition", "ums_cable_type", "ums_adapter_type"
   , "ums_tool_type", "ums_module_type", "ums_consumable_type"
   , "ums_item_kind_tag", "ums_wiring_type", "ums_validation_check"
+  , "ums_coop_role", "ums_connection_state", "ums_session_phase"
+  , "ums_multiplayer_alert", "ums_sync_message_kind"
+  , "ums_damage_type", "ums_critical_outcome", "ums_detection_source"
+  , "ums_jessica_subclass", "ums_q_certification", "ums_loadout_slot"
+  , "ums_attribute"
   ]
 
 private
@@ -141,6 +148,70 @@ enumConstants =
   , ("UMS_WIRING_SERVER_RACK", 2), ("UMS_WIRING_FIBRE_SPLICING", 3), ("UMS_WIRING_PBX_COMMS", 4)
   , ("UMS_VALIDATION_DEFENCE_TARGETS", 0), ("UMS_VALIDATION_GUARDS_IN_ZONES", 1)
   , ("UMS_VALIDATION_ZONES_ORDERED", 2), ("UMS_VALIDATION_PBX_CONSISTENT", 3)
+  , ("UMS_COOP_ROLE_JESSICA", cast (Multiplayer.coopRoleToInt Multiplayer.Jessica))
+  , ("UMS_COOP_ROLE_Q_HACKER", cast (Multiplayer.coopRoleToInt Multiplayer.QHacker))
+  , ("UMS_COOP_ROLE_OBSERVER", cast (Multiplayer.coopRoleToInt Multiplayer.Observer))
+  , ("UMS_CONNECTION_OFFLINE", cast (Multiplayer.connectionStateToInt Multiplayer.Offline))
+  , ("UMS_CONNECTION_CONNECTING", cast (Multiplayer.connectionStateToInt Multiplayer.Connecting))
+  , ("UMS_CONNECTION_IN_LOBBY", cast (Multiplayer.connectionStateToInt Multiplayer.InLobby))
+  , ("UMS_CONNECTION_IN_SESSION", cast (Multiplayer.connectionStateToInt Multiplayer.InSession))
+  , ("UMS_SESSION_LOBBY", cast (Multiplayer.sessionPhaseToInt Multiplayer.Lobby))
+  , ("UMS_SESSION_COUNTDOWN", cast (Multiplayer.sessionPhaseToInt Multiplayer.Countdown))
+  , ("UMS_SESSION_LOADING", cast (Multiplayer.sessionPhaseToInt Multiplayer.Loading))
+  , ("UMS_SESSION_PLAYING", cast (Multiplayer.sessionPhaseToInt Multiplayer.Playing))
+  , ("UMS_SESSION_PAUSED", cast (Multiplayer.sessionPhaseToInt Multiplayer.Paused))
+  , ("UMS_SESSION_COMPLETE", cast (Multiplayer.sessionPhaseToInt Multiplayer.Complete))
+  , ("UMS_MP_ALERT_GREEN", cast (Multiplayer.alertToInt Multiplayer.AlertGreen))
+  , ("UMS_MP_ALERT_YELLOW", cast (Multiplayer.alertToInt Multiplayer.AlertYellow))
+  , ("UMS_MP_ALERT_ORANGE", cast (Multiplayer.alertToInt Multiplayer.AlertOrange))
+  , ("UMS_MP_ALERT_RED", cast (Multiplayer.alertToInt Multiplayer.AlertRed))
+  , ("UMS_SYNC_POSITION", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgPosition))
+  , ("UMS_SYNC_VM_EXECUTE", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgVMExecute))
+  , ("UMS_SYNC_VM_UNDO", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgVMUndo))
+  , ("UMS_SYNC_VM_STATE", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgVMState))
+  , ("UMS_SYNC_BEBOP_DISCOVERED", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgBebopDiscovered))
+  , ("UMS_SYNC_BEBOP_ACTIVATED", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgBebopActivated))
+  , ("UMS_SYNC_BEBOP_COOP_REQ", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgBebopCoopReq))
+  , ("UMS_SYNC_BEBOP_COOP_ACCEPT", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgBebopCoopAccept))
+  , ("UMS_SYNC_DEVICE_ACCESSED", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgDeviceAccessed))
+  , ("UMS_SYNC_ALERT_CHANGED", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgAlertChanged))
+  , ("UMS_SYNC_CHAT", cast (Multiplayer.syncMessageKindToInt Multiplayer.MsgChat))
+  , ("UMS_DAMAGE_PHYSICAL", cast (GameSystems.damageTypeToInt GameSystems.PhysicalDamage))
+  , ("UMS_DAMAGE_ELECTRIC", cast (GameSystems.damageTypeToInt GameSystems.ElectricDamage))
+  , ("UMS_DAMAGE_CYBER", cast (GameSystems.damageTypeToInt GameSystems.CyberDamage))
+  , ("UMS_DAMAGE_FALL", cast (GameSystems.damageTypeToInt GameSystems.FallDamage))
+  , ("UMS_CRITICAL_FAILURE", cast (GameSystems.critOutcomeToInt GameSystems.CriticalFailure))
+  , ("UMS_CRITICAL_NORMAL", cast (GameSystems.critOutcomeToInt GameSystems.NormalResult))
+  , ("UMS_CRITICAL_SUCCESS", cast (GameSystems.critOutcomeToInt GameSystems.CriticalSuccess))
+  , ("UMS_CRITICAL_PERFECT", cast (GameSystems.critOutcomeToInt GameSystems.PerfectExecution))
+  , ("UMS_DETECTION_CAMERA", cast (GameSystems.detSourceToInt GameSystems.CameraDetected))
+  , ("UMS_DETECTION_GUARD", cast (GameSystems.detSourceToInt GameSystems.GuardDetected))
+  , ("UMS_DETECTION_DOG", cast (GameSystems.detSourceToInt GameSystems.DogDetected))
+  , ("UMS_DETECTION_DRONE", cast (GameSystems.detSourceToInt GameSystems.DroneDetected))
+  , ("UMS_DETECTION_ALARM", cast (GameSystems.detSourceToInt GameSystems.AlarmTriggered))
+  , ("UMS_DETECTION_NOISE", cast (GameSystems.detSourceToInt GameSystems.NoiseDetected))
+  , ("UMS_DETECTION_CYBER_TRACE", cast (GameSystems.detSourceToInt GameSystems.CyberTraceBack))
+  , ("UMS_SUBCLASS_ASSAULT", cast (GameSystems.subclassToInt GameSystems.Assault))
+  , ("UMS_SUBCLASS_RECON", cast (GameSystems.subclassToInt GameSystems.Recon))
+  , ("UMS_SUBCLASS_ENGINEER", cast (GameSystems.subclassToInt GameSystems.Engineer))
+  , ("UMS_SUBCLASS_SIGNALS", cast (GameSystems.subclassToInt GameSystems.Signals))
+  , ("UMS_SUBCLASS_MEDIC", cast (GameSystems.subclassToInt GameSystems.Medic))
+  , ("UMS_SUBCLASS_LOGISTICS", cast (GameSystems.subclassToInt GameSystems.Logistics))
+  , ("UMS_CERT_NETWORK_EXPLOIT", cast (GameSystems.certToInt GameSystems.NetworkExploit))
+  , ("UMS_CERT_CRYPTO_ANALYSIS", cast (GameSystems.certToInt GameSystems.CryptoAnalysis))
+  , ("UMS_CERT_SOCIAL_ENG", cast (GameSystems.certToInt GameSystems.SocialEng))
+  , ("UMS_CERT_FORENSIC_ANALYSIS", cast (GameSystems.certToInt GameSystems.ForensicAnalysis))
+  , ("UMS_CERT_MALWARE_DESIGN", cast (GameSystems.certToInt GameSystems.MalwareDesign))
+  , ("UMS_CERT_COUNTER_INTEL", cast (GameSystems.certToInt GameSystems.CounterIntel))
+  , ("UMS_LOADOUT_WEAPON", cast (GameSystems.loadoutSlotToInt GameSystems.WeaponSlot))
+  , ("UMS_LOADOUT_TOOL", cast (GameSystems.loadoutSlotToInt GameSystems.ToolSlot))
+  , ("UMS_LOADOUT_CONSUMABLE", cast (GameSystems.loadoutSlotToInt GameSystems.ConsumableSlot))
+  , ("UMS_ATTRIBUTE_STR", cast (GameSystems.attributeToInt GameSystems.STR))
+  , ("UMS_ATTRIBUTE_DEX", cast (GameSystems.attributeToInt GameSystems.DEX))
+  , ("UMS_ATTRIBUTE_INT", cast (GameSystems.attributeToInt GameSystems.INT))
+  , ("UMS_ATTRIBUTE_CON", cast (GameSystems.attributeToInt GameSystems.CON))
+  , ("UMS_ATTRIBUTE_WIL", cast (GameSystems.attributeToInt GameSystems.WIL))
+  , ("UMS_ATTRIBUTE_CHA", cast (GameSystems.attributeToInt GameSystems.CHA))
   ]
 
 private
@@ -164,9 +235,10 @@ maxItems = 512
 maxWiring = 128
 maxZoneTransitions = 64
 
-private maxDeviceDefences, maxObjectives : Nat
+private maxDeviceDefences, maxObjectives, maxPlayers : Nat
 maxDeviceDefences = 256
 maxObjectives = 32
+maxPlayers = 8
 
 private
 capacityDeclarations : String
@@ -181,6 +253,7 @@ capacityDeclarations = concat (map renderConstant capacities) ++ "\n"
       , ("UMS_MAX_ZONE_TRANSITIONS", maxZoneTransitions)
       , ("UMS_MAX_DEVICE_DEFENCES", maxDeviceDefences)
       , ("UMS_MAX_OBJECTIVES", maxObjectives)
+      , ("UMS_MAX_PLAYERS", maxPlayers)
       ]
 
 private
@@ -284,6 +357,30 @@ structs =
       [ field CBool "valid", field CBool "defence_targets_valid", field CBool "guards_in_zones"
       , field CBool "zones_ordered", field CBool "pbx_consistent"
       , field CU8 "_pad0", field CU8 "_pad1", field CU8 "_pad2" ]
+  , MkStruct "ums_player_info"
+      [ field (constPtr CChar) "player_id", field (named "ums_coop_role") "role"
+      , field CU8 "_pad0", field CU8 "_pad1", field CU8 "_pad2", field CU8 "_pad3"
+      , field CU8 "_pad4", field CU8 "_pad5", field CU8 "_pad6"
+      , field CF64 "pos_x", field CF64 "pos_y" ]
+  , MkStruct "ums_chat_message"
+      [ field (constPtr CChar) "sender_id", field (constPtr CChar) "content"
+      , field CF64 "timestamp" ]
+  , MkStruct "ums_session_state"
+      [ field (constPtr CChar) "session_id", field (named "ums_session_phase") "phase"
+      , field (named "ums_multiplayer_alert") "alert"
+      , field CU8 "_pad0", field CU8 "_pad1"
+      , field (array maxPlayers (named "ums_player_info")) "players"
+      , field CU32 "players_len" ]
+  , MkStruct "ums_detection_event"
+      [ field (named "ums_detection_source") "source"
+      , field CU8 "_pad0", field CU8 "_pad1", field CU8 "_pad2"
+      , field CU32 "severity", field CF64 "timestamp" ]
+  , MkStruct "ums_player_state"
+      [ field CU32 "hp", field CU32 "max_hp", field CU32 "armour"
+      , field (named "ums_jessica_subclass") "subclass"
+      , field CU8 "_pad0", field CU8 "_pad1", field CU8 "_pad2"
+      , field (array 6 CU8) "attributes", field CU8 "_pad3", field CU8 "_pad4"
+      , field CU32 "alert_score" ]
   ]
 
 private
@@ -310,6 +407,78 @@ functions =
   , MkFunction CSize "idaptik_ums_serialize_level" [param constLevelPtr "level", param (ptr CU8) "buf", param CSize "buf_len"]
   , MkFunction levelPtr "idaptik_ums_deserialize_level" [param (constPtr CU8) "data", param CSize "data_len"]
   , MkFunction CBool "idaptik_ums_admit_level_json" [param (constPtr CU8) "data", param CSize "data_len"]
+  , MkFunction CBool "idaptik_ums_add_item" [param levelPtr "level", param (constPtr (named "ums_world_item")) "item"]
+  , MkFunction CBool "idaptik_ums_add_assassin" [param levelPtr "level", param (constPtr (named "ums_assassin_config")) "assassin"]
+  , MkFunction CU32 "idaptik_ums_total_item_weight" [param constLevelPtr "level"]
+  , MkFunction CU32 "idaptik_ums_count_items_by_kind" [param constLevelPtr "level", param CU8 "kind_tag"]
+  , MkFunction (constPtr (named "ums_world_item")) "idaptik_ums_get_item" [param constLevelPtr "level", param CU32 "index"]
+  , MkFunction CU8 "idaptik_ums_degrade_condition" [param levelPtr "level", param CU32 "item_index"]
+  , MkFunction CU32 "idaptik_ums_total_enemy_count" [param constLevelPtr "level"]
+  , MkFunction CU32 "idaptik_ums_threat_score" [param constLevelPtr "level"]
+  , MkFunction CU32 "idaptik_ums_guards_in_zone" [param constLevelPtr "level", param (constPtr CChar) "zone_name"]
+  , MkFunction CU32 "idaptik_ums_enemies_in_range" [param constLevelPtr "level", param CF64 "x_min", param CF64 "x_max"]
+  , MkFunction CU8 "idaptik_ums_highest_guard_rank" [param constLevelPtr "level"]
+  , MkFunction CBool "idaptik_ums_add_device_defence" [param levelPtr "level", param (constPtr (named "ums_device_defence_config")) "defence"]
+  , MkFunction CBool "idaptik_ums_add_zone_transition" [param levelPtr "level", param (constPtr (named "ums_zone_transition")) "transition"]
+  , MkFunction CBool "idaptik_ums_add_objective" [param levelPtr "level", param (constPtr (named "ums_mission_objective")) "objective"]
+  , MkFunction CVoid "idaptik_ums_reset_objectives" []
+  , MkFunction CU32 "idaptik_ums_required_objective_count" [param constLevelPtr "level"]
+  , MkFunction CU32 "idaptik_ums_total_objective_count" [param constLevelPtr "level"]
+  , MkFunction CBool "idaptik_ums_has_time_limit" [param constLevelPtr "level"]
+  , MkFunction CU32 "idaptik_ums_get_time_limit" [param constLevelPtr "level"]
+  , MkFunction (constPtr (named "ums_mission_objective")) "idaptik_ums_get_objective" [param constLevelPtr "level", param CU32 "index"]
+  , MkFunction CBool "idaptik_ums_add_wiring" [param levelPtr "level", param (constPtr (named "ums_wiring_challenge")) "challenge"]
+  , MkFunction CU32 "idaptik_ums_count_wiring_by_type" [param constLevelPtr "level", param CU8 "wiring_type"]
+  , MkFunction CU32 "idaptik_ums_wiring_at_device" [param constLevelPtr "level", param (constPtr (named "ums_ip_address")) "ip"]
+  , MkFunction CU32 "idaptik_ums_max_wiring_difficulty" [param constLevelPtr "level"]
+  , MkFunction CU32 "idaptik_ums_avg_wiring_difficulty" [param constLevelPtr "level"]
+  , MkFunction (constPtr (named "ums_wiring_challenge")) "idaptik_ums_get_wiring" [param constLevelPtr "level", param CU32 "index"]
+  , MkFunction CU32 "idaptik_safe_add" [param CU32 "a", param CU32 "b", param CU32 "max_val"]
+  , MkFunction CU32 "idaptik_safe_sub" [param CU32 "a", param CU32 "b"]
+  , MkFunction CU32 "idaptik_safe_mul" [param CU32 "a", param CU32 "b", param CU32 "max_val"]
+  , MkFunction CU32 "idaptik_safe_clamp" [param CU32 "value", param CU32 "min_val", param CU32 "max_val"]
+  , MkFunction CU32 "idaptik_safe_percentage" [param CU32 "value", param CU32 "total"]
+  , MkFunction CU32 "idaptik_safe_strlen" [param (constPtr CChar) "s", param CU32 "max_len"]
+  , MkFunction CBool "idaptik_safe_is_printable_ascii" [param (constPtr CChar) "s"]
+  , MkFunction CBool "idaptik_safe_token_compare" [param (constPtr CU8) "a", param (constPtr CU8) "b", param CU32 "len"]
+  , MkFunction CU8 "idaptik_classify_keystroke" [param CU8 "keycode"]
+  , MkFunction CBool "idaptik_mp_roles_disjoint" [param CU8 "role_a", param CU8 "role_b"]
+  , MkFunction CBool "idaptik_mp_valid_role" [param CU8 "role"]
+  , MkFunction CBool "idaptik_mp_alert_lte" [param CU8 "a", param CU8 "b"]
+  , MkFunction CU8 "idaptik_mp_alert_max" [param CU8 "a", param CU8 "b"]
+  , MkFunction CU8 "idaptik_mp_alert_escalate" [param CU8 "current"]
+  , MkFunction CBool "idaptik_mp_add_player" [param (ptr (named "ums_session_state")) "session", param (constPtr (named "ums_player_info")) "player"]
+  , MkFunction CU32 "idaptik_mp_count_role" [param (constPtr (named "ums_session_state")) "session", param CU8 "role"]
+  , MkFunction CBool "idaptik_mp_can_start" [param (constPtr (named "ums_session_state")) "session"]
+  , MkFunction CBool "idaptik_mp_valid_transition" [param CU8 "current", param CU8 "next"]
+  , MkFunction CU32 "idaptik_gs_apply_damage" [param (ptr (named "ums_player_state")) "state", param CU32 "raw_damage", param CU8 "damage_type"]
+  , MkFunction CU32 "idaptik_gs_heal" [param (ptr (named "ums_player_state")) "state", param CU32 "amount"]
+  , MkFunction CBool "idaptik_gs_is_alive" [param (constPtr (named "ums_player_state")) "state"]
+  , MkFunction CU8 "idaptik_gs_resolve_critical" [param CU8 "attribute_score", param CU8 "roll"]
+  , MkFunction CU32 "idaptik_gs_add_detection" [param (ptr (named "ums_player_state")) "state", param (constPtr (named "ums_detection_event")) "event"]
+  , MkFunction CU8 "idaptik_gs_alert_level_from_score" [param CU32 "score"]
+  , MkFunction CU8 "idaptik_gs_skill_check" [param (constPtr (named "ums_player_state")) "state", param CU8 "attribute_idx", param CU8 "difficulty", param CU8 "roll"]
+  , MkFunction CU8 "idaptik_gs_subclass_bonus" [param CU8 "subclass", param CU8 "context"]
+  , MkFunction CBool "idaptik_gs_valid_loadout_slot" [param CU8 "slot"]
+  , MkFunction CBool "idaptik_gs_valid_deck_capacity" [param CU8 "count"]
+  , MkFunction (constPtr CChar) "ipc_load_level" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_save_level" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_validate_level_abi" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_list_levels" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_export_level_config" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_get_system_info" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_create_level" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_destroy_level" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_add_zone" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_add_device" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_add_guard" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_add_dog" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_add_drone" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_set_mission" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_set_physical" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_validate_level" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_serialize_level" [param (constPtr CChar) "payload"]
+  , MkFunction (constPtr CChar) "ipc_deserialize_level" [param (constPtr CChar) "payload"]
   ]
 
 public export
@@ -318,19 +487,34 @@ cHeader =
   "/* SPDX-License-Identifier: AGPL-3.0-or-later */\n" ++
   "/* SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk> */\n" ++
   "/* Generated by the typechecked Idris2 CABI module. DO NOT EDIT. */\n" ++
-  "#ifndef IDAPTIK_UMS_LEVEL_H\n#define IDAPTIK_UMS_LEVEL_H\n\n" ++
+  "#ifndef IDAPTIK_UMS_H\n#define IDAPTIK_UMS_H\n\n" ++
   "#include <stdbool.h>\n#include <stddef.h>\n#include <stdint.h>\n\n" ++
   "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n" ++
   capacityDeclarations ++ aliasDeclarations ++ enumConstantDeclarations ++ concat (map renderStruct structs) ++
   concat (map renderFunction functions) ++
   "\n#ifdef __cplusplus\n}\n#endif\n\n#endif\n"
 
+public export
+levelCompatibilityHeader : String
+levelCompatibilityHeader =
+  "/* SPDX-License-Identifier: AGPL-3.0-or-later */\n" ++
+  "/* SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk> */\n" ++
+  "/* Generated compatibility include. New consumers should include idaptik_ums.h. */\n" ++
+  "#ifndef IDAPTIK_UMS_LEVEL_H\n#define IDAPTIK_UMS_LEVEL_H\n\n" ++
+  "#include \"idaptik_ums.h\"\n\n#endif\n"
+
+public export
+symbolList : String
+symbolList = concat (map (\decl => functionName decl ++ "\n") functions)
+
 usage : IO ()
-usage = putStrLn "usage: idaptik-ums-abi-gen c"
+usage = putStrLn "usage: idaptik-ums-abi-gen <c|level-compat|symbols>"
 
 main : IO ()
 main = do
   args <- getArgs
   case args of
     [_, "c"] => putStr cHeader
+    [_, "level-compat"] => putStr levelCompatibilityHeader
+    [_, "symbols"] => putStr symbolList
     _ => usage

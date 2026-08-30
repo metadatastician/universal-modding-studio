@@ -44,8 +44,10 @@ header did not exist. That broken wiring was removed.
 The subsequent estate audit located a working, tested pattern in
 `metadatastician/enaction-engine`: a total Idris2 program renders declarations
 from typechecked ABI constants and a byte comparison rejects stale generated
-artifacts. UMS now applies that pattern to its bounded `LevelData` surface in
-`abi/CABI.idr`, with C-vs-Zig size, alignment, offset and discriminant checks.
+artifacts. UMS first applied that pattern to bounded `LevelData` and now
+generates the complete current Zig C-export surface from `abi/CABI.idr`, with
+C-vs-Zig size, alignment, offset, discriminant and function-shape checks plus
+compiled-symbol parity.
 See `docs/ABI-HEADER.adoc` for exact coverage and proof limits.
 
 Official capability references:
