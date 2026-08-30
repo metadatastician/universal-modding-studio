@@ -13,6 +13,7 @@ import Data.List
 import System
 import Multiplayer
 import GameSystems
+import Representation
 
 %default total
 
@@ -221,24 +222,6 @@ renderConstant (name, value) = "#define " ++ name ++ " " ++ show value ++ "u\n"
 private
 enumConstantDeclarations : String
 enumConstantDeclarations = concat (map renderConstant enumConstants) ++ "\n"
-
-private maxDevices, maxZones, maxGuards, maxDogs, maxDrones : Nat
-maxDevices = 256
-maxZones = 64
-maxGuards = 128
-maxDogs = 64
-maxDrones = 64
-
-private maxAssassins, maxItems, maxWiring, maxZoneTransitions : Nat
-maxAssassins = 16
-maxItems = 512
-maxWiring = 128
-maxZoneTransitions = 64
-
-private maxDeviceDefences, maxObjectives, maxPlayers : Nat
-maxDeviceDefences = 256
-maxObjectives = 32
-maxPlayers = 8
 
 private
 capacityDeclarations : String

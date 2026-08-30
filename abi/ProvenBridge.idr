@@ -39,6 +39,7 @@ import Mission
 import Wiring
 import Physical
 import Level
+import Representation
 import public Validation
 
 import Data.Fin
@@ -825,17 +826,21 @@ validationFailureNames level =
 ||| Parse and admit a level through the Idris2-owned validation boundary.
 |||
 ||| Successful extraction alone is insufficient: the resulting LevelData
-||| must also carry witnesses for defence targets, guard zones, transition
+||| must first refine without truncation into the bounded abstract C ABI value
+||| domain, then carry witnesses for defence targets, guard zones, transition
 ||| ordering and PBX consistency. No raw extraction function is exported.
 export
 parseValidatedLevelJson : String -> Either String ValidatedLevel
 parseValidatedLevelJson input =
   case parseLevelDataJson input of
     Left err => Left err
-    Right level => case validateLevel level of
-      Nothing => Left ("cross-domain validation failed: " ++
-                       joinBy ", " (validationFailureNames level))
-      Just validated => Right validated
+    Right level => case refineLevel level of
+      Left errors => Left ("C ABI representation refinement failed: " ++
+                           joinBy ", " errors)
+      Right (_ ** Refl) => case validateLevel level of
+        Nothing => Left ("cross-domain validation failed: " ++
+                         joinBy ", " (validationFailureNames level))
+        Just validated => Right validated
 
 ------------------------------------------------------------------------
 -- validateAndReport: human-readable validation diagnostics

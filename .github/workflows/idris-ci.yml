@@ -9,6 +9,7 @@ on:
       - 'abi/**'
       - 'idaptik-ums.ipkg'
       - 'extractors-test.ipkg'
+      - 'representation-test.ipkg'
       - 'generated/abi/**'
       - 'scripts/generate-abi-header.sh'
       - 'scripts/proven-min.ipkg'
@@ -18,6 +19,7 @@ on:
       - 'abi/**'
       - 'idaptik-ums.ipkg'
       - 'extractors-test.ipkg'
+      - 'representation-test.ipkg'
       - 'generated/abi/**'
       - 'scripts/generate-abi-header.sh'
       - 'scripts/proven-min.ipkg'
@@ -74,3 +76,7 @@ jobs:
         run: |
           idris2 --build extractors-test.ipkg
           ./build/exec/extractors-test
+      - name: Build and run representation-refinement controls
+        run: |
+          idris2 --build representation-test.ipkg
+          ./build/exec/representation-test

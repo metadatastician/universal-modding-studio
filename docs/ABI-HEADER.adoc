@@ -22,7 +22,8 @@ typechecking the package.
 
 The generated surface contains:
 
-* the fixed capacities used by the bounded `LevelData` representation;
+* the fixed capacities owned by `abi/Representation.idr` and used by the
+  bounded `LevelData` representation;
 * all 27 one-byte enum representations and their 142 discriminant constants;
 * all 27 C structs used by the level, multiplayer and game-system surfaces,
   including explicit padding where the representation requires it;
@@ -67,11 +68,14 @@ meaning, ownership, C qualifiers, or equivalence between same-sized distinct
 types.
 
 The physical C declarations in `CABI.idr` are an explicit representation model
-for the semantic records in the other Idris2 modules. Idris2 does not prove
-that, for example, `Level.LevelData`'s lists are represented by the selected
-fixed-capacity arrays, nor can it machine-check the foreign C compiler's layout.
-Those are deliberate refinement and executable-parity obligations. Scaffolding
-is not reported as proof.
+for the semantic records in the other Idris2 modules.
+`Representation.refineLevel` now machine-checks the bounded admission
+obligations and proves that successful admission preserves the source semantic
+value; canonical optional and item-tag encodings have dependent round-trip
+decoders. It does not yet prove the complete copy into every generated C struct,
+allocation or pointer lifetime, nor can Idris2 inspect a foreign compiler's
+layout. Those remaining obligations are executable parity evidence and explicit
+gaps; see `docs/ABI-REPRESENTATION.adoc`. Scaffolding is not reported as proof.
 
 == Reproduction
 

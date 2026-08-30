@@ -7,6 +7,14 @@ SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 ## [Unreleased]
 
 ### Added
+- `abi/Representation.idr` now owns the bounded `LevelData` ABI capacities and
+  rejects collection overflow, `uint32_t` narrowing and embedded-NUL C strings
+  before `ValidatedLevel` admission. Successful refinement carries equality to
+  the source semantic value; canonical optional payloads and every `ItemKind`
+  variant have dependent re-encoding equalities. The 17-control representation
+  executable and a 51st exported-admission negative are CI-gated. Complete
+  semantic-to-C-struct conversion, auxiliary records, foreign layout and
+  universal parser equivalence remain explicit gaps (2026-08-30).
 - The typechecked Idris2 ABI renderer now covers all 85 C exports, 27 structs,
   27 enums and 142 discriminants in the Zig FFI. It generates the canonical
   header, a compatibility include and the compiled-symbol manifest. Zig tests

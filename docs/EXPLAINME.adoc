@@ -234,10 +234,14 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
   active-field round-trip test. The generated Idris2 ABI artifacts cover all
   85 current Zig C exports, 27 structs, 27 enum representations and 142
   discriminants; executable gates compare their layouts, function ABI shapes
-  and compiled symbols. These checks do not prove semantic type identity,
+  and compiled symbols. `abi/Representation.idr` additionally checks bounded
+  semantic admission and carries source-preservation equality, plus canonical
+  optional and `ItemKind` round trips. It does not prove the complete semantic
+  record-to-C-struct copy. These checks do not prove semantic type identity,
   cross-platform ABI equivalence or universal parser equivalence. See
   `docs/ABI-PARITY.adoc`, `docs/ABI-ROUNDTRIP.adoc` and
-  `docs/ABI-HEADER.adoc`.
+  `docs/ABI-HEADER.adoc`, with the exact proof ledger in
+  `docs/ABI-REPRESENTATION.adoc`.
 
 | UMS → game round trip
 | CI-gated and rerun against merged IDApTIK main on 2026-08-29:

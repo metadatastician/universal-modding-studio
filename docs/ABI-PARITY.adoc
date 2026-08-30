@@ -8,8 +8,10 @@
 
 `ProvenBridge.parseValidatedLevelJson` is the Idris2 admission boundary. Raw
 JSON extraction remains private; successful admission returns a
-`ValidatedLevel` only after the four total `Dec` procedures construct witnesses
-for defence targets, guard zones, transition ordering and PBX consistency.
+`ValidatedLevel` only after `Representation.refineLevel` accepts the bounded C
+value-domain obligations and the four total `Dec` procedures construct
+witnesses for defence targets, guard zones, transition ordering and PBX
+consistency.
 
 `idaptik_ums_admit_level_json` is the corresponding exported Zig C-ABI
 endpoint. It parses the complete snake_case `LevelData` JSON representation,
@@ -24,7 +26,8 @@ suite calls the exported endpoint and reports the same outcomes.
 
 == Evidence classification
 
-The four Idris2 witness values are *machine-checked* by Idris2. The six-case
+The representation-refinement equality and four Idris2 witness values are
+*machine-checked* by Idris2. The six-case
 cross-language result is *tested parity over a bounded corpus*. It is not a
 proof that the independently implemented parsers are equivalent for every JSON
 document. The Zig implementation and a passing CI job are not described as
@@ -47,6 +50,9 @@ approximation is claimed. If a BEAM-native consumer is introduced later, it
 must use the estate SNIF sandbox and never a raw NIF. Rust consumers are
 Rust/Crusoe consumers.
 
+The exact representation proof boundary and its remaining physical-conversion
+gaps are recorded in `docs/ABI-REPRESENTATION.adoc`.
+
 == Reproduction
 
 [source,shell]
@@ -54,6 +60,8 @@ Rust/Crusoe consumers.
 idris2 --typecheck idaptik-ums.ipkg
 idris2 --build extractors-test.ipkg
 ./build/exec/extractors-test
+idris2 --build representation-test.ipkg
+./build/exec/representation-test
 
 cd ffi/zig
 ZIG_GLOBAL_CACHE_DIR=/tmp/ums-zig-014-global \
