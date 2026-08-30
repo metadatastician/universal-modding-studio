@@ -8,7 +8,7 @@ type = "modding-studio"
 last-updated = "2026-08-30"
 branch = "main"
 build-status = "single-repository profile lanes implemented; remote rename and canonical archive cutover complete"
-test-status = "Rust/Crusoe workspace tests, Clippy, generation drift, Slavia validation, architecture boundaries, 32 Zig FFI tests, 18 Idris2 modules, 50 extractor/admission checks, 85 compiled ABI symbols and the repaired IDApTIK v3 round trip green locally"
+test-status = "Rust/Crusoe workspace tests, Clippy, generation drift, Slavia validation, architecture boundaries, 32 Zig FFI tests, 19 Idris2 modules, 51 extractor/admission checks, 17 representation-refinement controls, 85 compiled ABI symbols and the repaired IDApTIK v3 round trip green locally"
 
 [project-context]
 description = "Universal Modding Studio: independent authoring, generation, validation and packaging platform."
@@ -26,13 +26,14 @@ enaction-adapter = { status = "designed", notes = "Trait and schema seam only." 
 studio-ui = { status = "aspirational", notes = "Specified multi-lens target; no frontend." }
 dependency-boundaries = { status = "tested", notes = "scripts/check-architecture-boundaries.sh rejects reverse runtime/UI dependencies and cross-game profile imports; hard-fails on a missing sibling." }
 end-to-end-roundtrip = { status = "gated", notes = "Rerun against merged IDApTIK main on 2026-08-29. The gate compiles twice, compares all eight authored field groups with the accepted model, then executes, snapshots, restores and replays identically. Evidence is scoped to that fixture and path." }
-idris2-abi = { status = "machine-checked-scope", notes = "18 modules typecheck; raw extraction is private and the exported parser returns ValidatedLevel only after four Dec procedures construct witnesses. CABI is a total renderer for the complete current 85-function Zig C-export surface. Universal parser equivalence and semantic-record-to-fixed-layout refinement remain open, so this is not end-to-end proof." }
+idris2-abi = { status = "machine-checked-scope", notes = "19 modules typecheck; raw extraction is private and the exported parser checks bounded C-value representability before four Dec procedures construct ValidatedLevel witnesses. Successful refinement carries source-preservation equality; canonical optional payloads and ItemKind have dependent re-encoding equalities. CABI is a total renderer for the complete current 85-function Zig C-export surface. Complete semantic-record-to-C-struct conversion, auxiliary session/player refinement, universal parser equivalence and foreign layout remain open, so this is not end-to-end proof." }
 zig-ffi = { status = "tested-unintegrated", notes = "32 integration tests check all 27 struct layouts, 27 enum representations, 142 discriminants and 85 function ABI shapes imported from generated Idris2 artifacts; compiled shared/static symbols are checked against the generated manifest. Planted layout, signature and symbol drift fail. No canonical unified-hexadeca-api is locatable; semantic or cross-platform ABI proof and hexadeca compliance are not claimed." }
 snif-boundary = { status = "not-applicable", notes = "No BEAM runtime in UMS. Future BEAM native compute must use SNIFs; raw NIFs are forbidden." }
 
 [route-to-mvp]
 remaining = [
-  { item = "Prove representation and parser parity between the Idris2-owned ValidatedLevel admission path and the Zig implementation", priority = "high" },
+  { item = "Expand bounded differential parser/admission parity beyond the current corpus; do not describe corpus coverage as universal proof", priority = "high" },
+  { item = "Model and verify complete semantic-to-C-struct conversion and auxiliary session/player refinements beyond the implemented bounded LevelData admission proof", priority = "high" },
   { item = "Integrate the Zig FFI with unified-hexadeca-api once its canonical implementation and versioned contract can be located; do not fabricate a local substitute", priority = "high" },
   { item = "Close IDApTIK modelled-versus-editable gaps", priority = "high" },
   { item = "Keep Slavia reflection aligned with its authoritative repository", priority = "medium" },

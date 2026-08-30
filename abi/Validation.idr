@@ -131,19 +131,6 @@ record ValidatedLevel where
 -- `ValidatedLevel`.
 ------------------------------------------------------------------------
 
-public export
-DecEq IpAddress where
-  decEq (MkIpAddress a1 a2 a3 a4) (MkIpAddress b1 b2 b3 b4) =
-    case decEq a1 b1 of
-      No c => No (\Refl => c Refl)
-      Yes Refl => case decEq a2 b2 of
-        No c => No (\Refl => c Refl)
-        Yes Refl => case decEq a3 b3 of
-          No c => No (\Refl => c Refl)
-          Yes Refl => case decEq a4 b4 of
-            No c => No (\Refl => c Refl)
-            Yes Refl => Yes Refl
-
 export
 Uninhabited (InRegistry addr []) where
   uninhabited (Here _) impossible

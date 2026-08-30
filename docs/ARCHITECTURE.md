@@ -120,6 +120,14 @@ not by itself prove its intended invariant. Existing confirmed proof claims
 remain scoped; unimplemented deciders, extraction obligations and parity tests
 remain explicit debt.
 
+`abi/Representation.idr` now owns the bounded `LevelData` capacities and
+semantic admission predicates used before `ValidatedLevel` construction. Its
+dependent results prove source-value preservation for successful refinement
+and canonical round-trip for optional payloads and the closed `ItemKind` sum.
+This is not a proof of the subsequent full Zig fixed-array copy, pointer
+lifetime, auxiliary multiplayer records or foreign byte layout; those gaps are
+itemised in `docs/ABI-REPRESENTATION.adoc`.
+
 The shared corpus described in `docs/ABI-PARITY.adoc` gives bounded tested
 agreement between Idris2 admission and the exported Zig JSON endpoint. The
 separate `docs/ABI-ROUNDTRIP.adoc` corpus confirms complete active-field

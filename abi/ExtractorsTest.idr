@@ -222,6 +222,9 @@ negativeChecks =
       invalidPbxWitness = """
         { "has_pbx": true, "pbx_ip": "10.0.0.9" }
         """
+      unrepresentableU32 = """
+        { "zones": [ { "name": "wide", "security_tier": 4294967296 } ] }
+        """
   in [ ("unknown breed rejected with context",
           failsMentioning badBreed "dogs[0].breed: unknown dog breed 'poodle'")
      , ("bad wiring kind reported",
@@ -240,6 +243,9 @@ negativeChecks =
           failsMentioning invalidOrderWitness "zones_ordered")
      , ("invalid PBX witness rejected",
           failsMentioning invalidPbxWitness "pbx_consistent")
+     , ("parsed value wider than uint32 is rejected at ABI refinement",
+          failsMentioning unrepresentableU32
+            "C ABI representation refinement failed: zones")
      ]
 
 report : (String, Bool) -> IO Bool

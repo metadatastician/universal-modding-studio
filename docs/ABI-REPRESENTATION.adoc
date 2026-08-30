@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= Idris2 ABI representation refinement
+:toc:
+
+== Implemented boundary
+
+`abi/Representation.idr` owns the semantic admission obligations imposed by
+the bounded `ums_level_data` C value domain. The public capacity constants are
+defined there and consumed by `abi/CABI.idr`, so the admission checker and the
+generated header do not maintain separate capacity values.
+
+`refineLevel` checks every `LevelData` collection capacity, every semantic
+`Nat` narrowed to `uint32_t`, every string that crosses a C-string boundary,
+and the mission-objective capacity. Successful refinement returns an
+`AbiLevel` with erased evidence that `representationErrors` is empty and a
+dependent equality showing that forgetting the refinement returns the exact
+source `LevelData`. Thus an accepted semantic value is not silently truncated,
+defaulted or reordered by this admission step.
+
+`ProvenBridge.parseValidatedLevelJson` invokes this refinement after total JSON
+extraction and before constructing the four cross-domain `ValidatedLevel`
+witnesses. An otherwise parseable `security_tier` of 4294967296 is planted as
+a negative control and is rejected specifically at the ABI-refinement boundary.
+
+== Machine-checked claims
+
+The following claims are checked by Idris2 rather than inferred from a scaffold:
+
+* a successful `refineLevel source` carries
+  `forgetAbiLevel physical = source`;
+* `decodeOptional` accepts only canonical flag/payload pairs and, on success,
+  carries evidence that re-encoding reproduces the supplied abstract physical
+  pair;
+* `decodeItemKind` accepts only canonical flattened tag/payload combinations
+  and, on success, carries the same re-encoding equality;
+* `decodeEncodeItemKind` covers every `ItemKind` constructor and subtype and
+  proves semantic encode/decode round-trip for that closed sum type.
+
+The package typechecks with `%default total` and contains no `believe_me`,
+`postulate` or `assert_total` escape hatch.
+
+== Executable controls
+
+`representation-test.ipkg` runs 17 controls. They cover exact and overflowing
+collection bounds, the `uint32_t` maximum and overflow, embedded NUL refusal,
+storage and mission-objective bounds, canonical and noncanonical optional
+payloads (including IPv4), and valid and invalid flattened item variants.
+
+`extractors-test.ipkg` now runs 51 controls, including the exported-admission
+overflow rejection. These tests demonstrate that the decision procedures
+compute and that their refusal paths are reachable; they are not themselves
+proofs.
+
+[source,shell]
+----
+idris2 --typecheck idaptik-ums.ipkg
+idris2 --build representation-test.ipkg
+./build/exec/representation-test
+idris2 --build extractors-test.ipkg
+./build/exec/extractors-test
+----
+
+== Explicitly open obligations
+
+This stage does *not* prove a complete conversion from every semantic record to
+the 27 generated C structs. The full `LevelData` fixed-array copy, allocation,
+pointer ownership and lifetime behaviour remains implemented and tested in
+Zig. `SessionState` and `PlayerState` also do not yet have complete semantic
+Idris2 records against which to state such a refinement.
+
+Idris2 has not inspected Zig or a C compiler's byte layout. The header parity,
+symbol and C round-trip suites remain bounded executable evidence, not a
+cross-platform layout theorem. The independent JSON parsers have a bounded
+shared corpus, not universal parser-equivalence proof. Scaffolding is not
+reported as proof.
+
+No unified-hexadeca integration has started because its canonical estate API
+has not been authoritatively located. Any future Rust consumer is a
+Rust/Crusoe consumer. Any future BEAM-native adapter must use the estate SNIF
+sandbox and never a raw NIF.
