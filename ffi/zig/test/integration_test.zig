@@ -8,7 +8,7 @@
 
 const std = @import("std");
 const c = @cImport({
-    @cInclude("idaptik_ums_level.h");
+    @cInclude("idaptik_ums.h");
 });
 
 fn expectSameLayout(comptime ZigType: type, comptime CType: type) !void {
@@ -29,10 +29,36 @@ fn expectEnumValues(comptime ZigType: type, comptime c_values: anytype) !void {
         try std.testing.expectEqual(zig_field.value, c_values[index]);
     }
 }
+
+fn expectFunctionAbi(comptime zig_function: anytype, comptime c_function: anytype) !void {
+    const zig_info = @typeInfo(@TypeOf(zig_function)).@"fn";
+    const c_info = @typeInfo(@TypeOf(c_function)).@"fn";
+    try std.testing.expectEqual(zig_info.calling_convention, c_info.calling_convention);
+    try std.testing.expectEqual(zig_info.params.len, c_info.params.len);
+    inline for (zig_info.params, c_info.params) |zig_param, c_param| {
+        try std.testing.expectEqual(@sizeOf(zig_param.type.?), @sizeOf(c_param.type.?));
+        try std.testing.expectEqual(@alignOf(zig_param.type.?), @alignOf(c_param.type.?));
+    }
+    if (zig_info.return_type) |zig_return| {
+        const c_return = c_info.return_type.?;
+        try std.testing.expectEqual(@sizeOf(zig_return), @sizeOf(c_return));
+        try std.testing.expectEqual(@alignOf(zig_return), @alignOf(c_return));
+    } else {
+        try std.testing.expect(c_info.return_type == null);
+    }
+}
 const types = @import("types");
 const validate = @import("validate");
 const main = @import("main");
 const json_codec = @import("json_codec");
+const inventory = @import("inventory");
+const enemies = @import("enemies");
+const mission_ffi = @import("mission");
+const wiring = @import("wiring");
+const proven_bridge = @import("proven_bridge");
+const multiplayer = @import("multiplayer");
+const game_systems = @import("game_systems");
+const ipc_handlers = @import("ipc_handlers");
 
 // =========================================================================
 // Helpers
@@ -613,6 +639,134 @@ test "generated Idris2 C header matches every bounded LevelData Zig layout" {
     try expectEnumValues(types.ItemKindTag, .{ c.UMS_ITEM_KIND_CABLE, c.UMS_ITEM_KIND_ADAPTER, c.UMS_ITEM_KIND_TOOL, c.UMS_ITEM_KIND_MODULE, c.UMS_ITEM_KIND_STORAGE, c.UMS_ITEM_KIND_CONSUMABLE, c.UMS_ITEM_KIND_KEYCARD, c.UMS_ITEM_KIND_RADIO });
     try expectEnumValues(types.WiringType, .{ c.UMS_WIRING_PATCH_PANEL, c.UMS_WIRING_SWITCH_BACKPLANE, c.UMS_WIRING_SERVER_RACK, c.UMS_WIRING_FIBRE_SPLICING, c.UMS_WIRING_PBX_COMMS });
     try expectEnumValues(types.ValidationCheck, .{ c.UMS_VALIDATION_DEFENCE_TARGETS, c.UMS_VALIDATION_GUARDS_IN_ZONES, c.UMS_VALIDATION_ZONES_ORDERED, c.UMS_VALIDATION_PBX_CONSISTENT });
+}
+
+test "generated Idris2 C header matches auxiliary Zig ABI layouts and discriminants" {
+    try expectSameLayout(multiplayer.PlayerInfo, c.ums_player_info);
+    try expectSameLayout(multiplayer.ChatMessage, c.ums_chat_message);
+    try expectSameLayout(multiplayer.SessionState, c.ums_session_state);
+    try expectSameLayout(game_systems.DetectionEvent, c.ums_detection_event);
+    try expectSameLayout(game_systems.PlayerState, c.ums_player_state);
+
+    try std.testing.expectEqual(@sizeOf(multiplayer.CoopRole), @sizeOf(c.ums_coop_role));
+    try std.testing.expectEqual(@sizeOf(multiplayer.ConnectionState), @sizeOf(c.ums_connection_state));
+    try std.testing.expectEqual(@sizeOf(multiplayer.SessionPhase), @sizeOf(c.ums_session_phase));
+    try std.testing.expectEqual(@sizeOf(multiplayer.AlertLevel), @sizeOf(c.ums_multiplayer_alert));
+    try std.testing.expectEqual(@sizeOf(multiplayer.SyncMessageKind), @sizeOf(c.ums_sync_message_kind));
+    try std.testing.expectEqual(@sizeOf(game_systems.DamageType), @sizeOf(c.ums_damage_type));
+    try std.testing.expectEqual(@sizeOf(game_systems.CriticalOutcome), @sizeOf(c.ums_critical_outcome));
+    try std.testing.expectEqual(@sizeOf(game_systems.DetectionSource), @sizeOf(c.ums_detection_source));
+    try std.testing.expectEqual(@sizeOf(game_systems.JessicaSubclass), @sizeOf(c.ums_jessica_subclass));
+    try std.testing.expectEqual(@sizeOf(game_systems.QCertification), @sizeOf(c.ums_q_certification));
+    try std.testing.expectEqual(@sizeOf(game_systems.LoadoutSlot), @sizeOf(c.ums_loadout_slot));
+    try std.testing.expectEqual(@sizeOf(game_systems.Attribute), @sizeOf(c.ums_attribute));
+
+    try expectEnumValues(multiplayer.CoopRole, .{ c.UMS_COOP_ROLE_JESSICA, c.UMS_COOP_ROLE_Q_HACKER, c.UMS_COOP_ROLE_OBSERVER });
+    try expectEnumValues(multiplayer.ConnectionState, .{ c.UMS_CONNECTION_OFFLINE, c.UMS_CONNECTION_CONNECTING, c.UMS_CONNECTION_IN_LOBBY, c.UMS_CONNECTION_IN_SESSION });
+    try expectEnumValues(multiplayer.SessionPhase, .{ c.UMS_SESSION_LOBBY, c.UMS_SESSION_COUNTDOWN, c.UMS_SESSION_LOADING, c.UMS_SESSION_PLAYING, c.UMS_SESSION_PAUSED, c.UMS_SESSION_COMPLETE });
+    try expectEnumValues(multiplayer.AlertLevel, .{ c.UMS_MP_ALERT_GREEN, c.UMS_MP_ALERT_YELLOW, c.UMS_MP_ALERT_ORANGE, c.UMS_MP_ALERT_RED });
+    try expectEnumValues(multiplayer.SyncMessageKind, .{ c.UMS_SYNC_POSITION, c.UMS_SYNC_VM_EXECUTE, c.UMS_SYNC_VM_UNDO, c.UMS_SYNC_VM_STATE, c.UMS_SYNC_BEBOP_DISCOVERED, c.UMS_SYNC_BEBOP_ACTIVATED, c.UMS_SYNC_BEBOP_COOP_REQ, c.UMS_SYNC_BEBOP_COOP_ACCEPT, c.UMS_SYNC_DEVICE_ACCESSED, c.UMS_SYNC_ALERT_CHANGED, c.UMS_SYNC_CHAT });
+    try expectEnumValues(game_systems.DamageType, .{ c.UMS_DAMAGE_PHYSICAL, c.UMS_DAMAGE_ELECTRIC, c.UMS_DAMAGE_CYBER, c.UMS_DAMAGE_FALL });
+    try expectEnumValues(game_systems.CriticalOutcome, .{ c.UMS_CRITICAL_FAILURE, c.UMS_CRITICAL_NORMAL, c.UMS_CRITICAL_SUCCESS, c.UMS_CRITICAL_PERFECT });
+    try expectEnumValues(game_systems.DetectionSource, .{ c.UMS_DETECTION_CAMERA, c.UMS_DETECTION_GUARD, c.UMS_DETECTION_DOG, c.UMS_DETECTION_DRONE, c.UMS_DETECTION_ALARM, c.UMS_DETECTION_NOISE, c.UMS_DETECTION_CYBER_TRACE });
+    try expectEnumValues(game_systems.JessicaSubclass, .{ c.UMS_SUBCLASS_ASSAULT, c.UMS_SUBCLASS_RECON, c.UMS_SUBCLASS_ENGINEER, c.UMS_SUBCLASS_SIGNALS, c.UMS_SUBCLASS_MEDIC, c.UMS_SUBCLASS_LOGISTICS });
+    try expectEnumValues(game_systems.QCertification, .{ c.UMS_CERT_NETWORK_EXPLOIT, c.UMS_CERT_CRYPTO_ANALYSIS, c.UMS_CERT_SOCIAL_ENG, c.UMS_CERT_FORENSIC_ANALYSIS, c.UMS_CERT_MALWARE_DESIGN, c.UMS_CERT_COUNTER_INTEL });
+    try expectEnumValues(game_systems.LoadoutSlot, .{ c.UMS_LOADOUT_WEAPON, c.UMS_LOADOUT_TOOL, c.UMS_LOADOUT_CONSUMABLE });
+    try expectEnumValues(game_systems.Attribute, .{ c.UMS_ATTRIBUTE_STR, c.UMS_ATTRIBUTE_DEX, c.UMS_ATTRIBUTE_INT, c.UMS_ATTRIBUTE_CON, c.UMS_ATTRIBUTE_WIL, c.UMS_ATTRIBUTE_CHA });
+}
+
+test "generated Idris2 C header core and domain function signatures are ABI-compatible" {
+    try expectFunctionAbi(main.idaptik_ums_create_level, c.idaptik_ums_create_level);
+    try expectFunctionAbi(main.idaptik_ums_destroy_level, c.idaptik_ums_destroy_level);
+    try expectFunctionAbi(main.idaptik_ums_add_device, c.idaptik_ums_add_device);
+    try expectFunctionAbi(main.idaptik_ums_add_zone, c.idaptik_ums_add_zone);
+    try expectFunctionAbi(main.idaptik_ums_add_guard, c.idaptik_ums_add_guard);
+    try expectFunctionAbi(main.idaptik_ums_add_dog, c.idaptik_ums_add_dog);
+    try expectFunctionAbi(main.idaptik_ums_add_drone, c.idaptik_ums_add_drone);
+    try expectFunctionAbi(main.idaptik_ums_set_mission, c.idaptik_ums_set_mission);
+    try expectFunctionAbi(main.idaptik_ums_set_physical, c.idaptik_ums_set_physical);
+    try expectFunctionAbi(main.idaptik_ums_validate_level, c.idaptik_ums_validate_level);
+    try expectFunctionAbi(main.idaptik_ums_serialize_level, c.idaptik_ums_serialize_level);
+    try expectFunctionAbi(main.idaptik_ums_deserialize_level, c.idaptik_ums_deserialize_level);
+    try expectFunctionAbi(main.idaptik_ums_admit_level_json, c.idaptik_ums_admit_level_json);
+    try expectFunctionAbi(inventory.idaptik_ums_add_item, c.idaptik_ums_add_item);
+    try expectFunctionAbi(inventory.idaptik_ums_add_assassin, c.idaptik_ums_add_assassin);
+    try expectFunctionAbi(inventory.idaptik_ums_total_item_weight, c.idaptik_ums_total_item_weight);
+    try expectFunctionAbi(inventory.idaptik_ums_count_items_by_kind, c.idaptik_ums_count_items_by_kind);
+    try expectFunctionAbi(inventory.idaptik_ums_get_item, c.idaptik_ums_get_item);
+    try expectFunctionAbi(inventory.idaptik_ums_degrade_condition, c.idaptik_ums_degrade_condition);
+    try expectFunctionAbi(enemies.idaptik_ums_total_enemy_count, c.idaptik_ums_total_enemy_count);
+    try expectFunctionAbi(enemies.idaptik_ums_threat_score, c.idaptik_ums_threat_score);
+    try expectFunctionAbi(enemies.idaptik_ums_guards_in_zone, c.idaptik_ums_guards_in_zone);
+    try expectFunctionAbi(enemies.idaptik_ums_enemies_in_range, c.idaptik_ums_enemies_in_range);
+    try expectFunctionAbi(enemies.idaptik_ums_highest_guard_rank, c.idaptik_ums_highest_guard_rank);
+    try expectFunctionAbi(enemies.idaptik_ums_add_device_defence, c.idaptik_ums_add_device_defence);
+    try expectFunctionAbi(enemies.idaptik_ums_add_zone_transition, c.idaptik_ums_add_zone_transition);
+    try expectFunctionAbi(mission_ffi.idaptik_ums_add_objective, c.idaptik_ums_add_objective);
+    try expectFunctionAbi(mission_ffi.idaptik_ums_reset_objectives, c.idaptik_ums_reset_objectives);
+    try expectFunctionAbi(mission_ffi.idaptik_ums_required_objective_count, c.idaptik_ums_required_objective_count);
+    try expectFunctionAbi(mission_ffi.idaptik_ums_total_objective_count, c.idaptik_ums_total_objective_count);
+    try expectFunctionAbi(mission_ffi.idaptik_ums_has_time_limit, c.idaptik_ums_has_time_limit);
+    try expectFunctionAbi(mission_ffi.idaptik_ums_get_time_limit, c.idaptik_ums_get_time_limit);
+    try expectFunctionAbi(mission_ffi.idaptik_ums_get_objective, c.idaptik_ums_get_objective);
+    try expectFunctionAbi(wiring.idaptik_ums_add_wiring, c.idaptik_ums_add_wiring);
+    try expectFunctionAbi(wiring.idaptik_ums_count_wiring_by_type, c.idaptik_ums_count_wiring_by_type);
+    try expectFunctionAbi(wiring.idaptik_ums_wiring_at_device, c.idaptik_ums_wiring_at_device);
+    try expectFunctionAbi(wiring.idaptik_ums_max_wiring_difficulty, c.idaptik_ums_max_wiring_difficulty);
+    try expectFunctionAbi(wiring.idaptik_ums_avg_wiring_difficulty, c.idaptik_ums_avg_wiring_difficulty);
+    try expectFunctionAbi(wiring.idaptik_ums_get_wiring, c.idaptik_ums_get_wiring);
+}
+
+test "generated Idris2 C header proven multiplayer and game-system signatures are ABI-compatible" {
+    try expectFunctionAbi(proven_bridge.idaptik_safe_add, c.idaptik_safe_add);
+    try expectFunctionAbi(proven_bridge.idaptik_safe_sub, c.idaptik_safe_sub);
+    try expectFunctionAbi(proven_bridge.idaptik_safe_mul, c.idaptik_safe_mul);
+    try expectFunctionAbi(proven_bridge.idaptik_safe_clamp, c.idaptik_safe_clamp);
+    try expectFunctionAbi(proven_bridge.idaptik_safe_percentage, c.idaptik_safe_percentage);
+    try expectFunctionAbi(proven_bridge.idaptik_safe_strlen, c.idaptik_safe_strlen);
+    try expectFunctionAbi(proven_bridge.idaptik_safe_is_printable_ascii, c.idaptik_safe_is_printable_ascii);
+    try expectFunctionAbi(proven_bridge.idaptik_safe_token_compare, c.idaptik_safe_token_compare);
+    try expectFunctionAbi(proven_bridge.idaptik_classify_keystroke, c.idaptik_classify_keystroke);
+    try expectFunctionAbi(multiplayer.idaptik_mp_roles_disjoint, c.idaptik_mp_roles_disjoint);
+    try expectFunctionAbi(multiplayer.idaptik_mp_valid_role, c.idaptik_mp_valid_role);
+    try expectFunctionAbi(multiplayer.idaptik_mp_alert_lte, c.idaptik_mp_alert_lte);
+    try expectFunctionAbi(multiplayer.idaptik_mp_alert_max, c.idaptik_mp_alert_max);
+    try expectFunctionAbi(multiplayer.idaptik_mp_alert_escalate, c.idaptik_mp_alert_escalate);
+    try expectFunctionAbi(multiplayer.idaptik_mp_add_player, c.idaptik_mp_add_player);
+    try expectFunctionAbi(multiplayer.idaptik_mp_count_role, c.idaptik_mp_count_role);
+    try expectFunctionAbi(multiplayer.idaptik_mp_can_start, c.idaptik_mp_can_start);
+    try expectFunctionAbi(multiplayer.idaptik_mp_valid_transition, c.idaptik_mp_valid_transition);
+    try expectFunctionAbi(game_systems.idaptik_gs_apply_damage, c.idaptik_gs_apply_damage);
+    try expectFunctionAbi(game_systems.idaptik_gs_heal, c.idaptik_gs_heal);
+    try expectFunctionAbi(game_systems.idaptik_gs_is_alive, c.idaptik_gs_is_alive);
+    try expectFunctionAbi(game_systems.idaptik_gs_resolve_critical, c.idaptik_gs_resolve_critical);
+    try expectFunctionAbi(game_systems.idaptik_gs_add_detection, c.idaptik_gs_add_detection);
+    try expectFunctionAbi(game_systems.idaptik_gs_alert_level_from_score, c.idaptik_gs_alert_level_from_score);
+    try expectFunctionAbi(game_systems.idaptik_gs_skill_check, c.idaptik_gs_skill_check);
+    try expectFunctionAbi(game_systems.idaptik_gs_subclass_bonus, c.idaptik_gs_subclass_bonus);
+    try expectFunctionAbi(game_systems.idaptik_gs_valid_loadout_slot, c.idaptik_gs_valid_loadout_slot);
+    try expectFunctionAbi(game_systems.idaptik_gs_valid_deck_capacity, c.idaptik_gs_valid_deck_capacity);
+}
+
+test "generated Idris2 C header IPC signatures are ABI-compatible" {
+    try expectFunctionAbi(ipc_handlers.ipc_load_level, c.ipc_load_level);
+    try expectFunctionAbi(ipc_handlers.ipc_save_level, c.ipc_save_level);
+    try expectFunctionAbi(ipc_handlers.ipc_validate_level_abi, c.ipc_validate_level_abi);
+    try expectFunctionAbi(ipc_handlers.ipc_list_levels, c.ipc_list_levels);
+    try expectFunctionAbi(ipc_handlers.ipc_export_level_config, c.ipc_export_level_config);
+    try expectFunctionAbi(ipc_handlers.ipc_get_system_info, c.ipc_get_system_info);
+    try expectFunctionAbi(ipc_handlers.ipc_create_level, c.ipc_create_level);
+    try expectFunctionAbi(ipc_handlers.ipc_destroy_level, c.ipc_destroy_level);
+    try expectFunctionAbi(ipc_handlers.ipc_add_zone, c.ipc_add_zone);
+    try expectFunctionAbi(ipc_handlers.ipc_add_device, c.ipc_add_device);
+    try expectFunctionAbi(ipc_handlers.ipc_add_guard, c.ipc_add_guard);
+    try expectFunctionAbi(ipc_handlers.ipc_add_dog, c.ipc_add_dog);
+    try expectFunctionAbi(ipc_handlers.ipc_add_drone, c.ipc_add_drone);
+    try expectFunctionAbi(ipc_handlers.ipc_set_mission, c.ipc_set_mission);
+    try expectFunctionAbi(ipc_handlers.ipc_set_physical, c.ipc_set_physical);
+    try expectFunctionAbi(ipc_handlers.ipc_validate_level, c.ipc_validate_level);
+    try expectFunctionAbi(ipc_handlers.ipc_serialize_level, c.ipc_serialize_level);
+    try expectFunctionAbi(ipc_handlers.ipc_deserialize_level, c.ipc_deserialize_level);
 }
 
 test "C JSON deserializer rejects unrepresentable documents" {

@@ -23,7 +23,7 @@ built its portability argument on that package being small enough to port
 verbatim.
 
 Python is banned by the estate language policy. The repository's own
-machine-readable policy said so — `.machine_readable/6a2/AGENTIC.a2ml:22`,
+machine-readable policy said so — `.machine_readable/descriptiles/AGENTIC.a2ml:22`,
 "Never use banned languages (TypeScript, Python, Go, etc.)" — and
 `READINESS.md` recorded the conflict in writing rather than hiding it:
 "`ai_edit` landed as Python in the lineage migration and is un-migrated — an

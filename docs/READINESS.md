@@ -23,9 +23,9 @@ and the repo's CI workflows — evidence over intuition, no aspirational grading
 | Chronicles of Slavia profile | D | Design fixture | Reflection and isolation are tested against a minimal Zone A fixture; no UMS compiler, loader or runtime integration exists. | 2026-07-25 |
 | Enaction adapter | X | Designed only | Typed preview seam and request schema exist; no real adapter or loader exists. | 2026-07-25 |
 | Generation source of truth (`config/*.ncl`) | C | Alpha-stable | `config-check` typechecks every source AND requires all three `config/bad/bad_*.ncl` negative fixtures to be rejected; `gen-check` diffs generated artifacts and fails when `nickel` is absent rather than skipping. Gated by `config-gen.yml`. | 2026-07-22 |
-| Zig FFI (`ffi/zig/`) | C | Compatibility FFI | 28 integration tests are CI-gated and Zig 0.14.0 is pinned. The exported full-JSON admission endpoint agrees with Idris2 on six shared fixtures. The complete bounded C codec preserves active fields across a rich C→JSON→C→JSON test with byte-stable second serialization. A generated Idris2 C header is checked against all 22 bounded structs and all 15 enum representations; a planted width drift makes the parity test fail. These are executable tests, not universal parser or cross-platform layout proofs. Unified-hexadeca integration remains unstarted because no canonical implementation is locatable. | 2026-08-29 |
+| Zig FFI (`ffi/zig/`) | C | Compatibility FFI | 32 integration tests are CI-gated and Zig 0.14.0 is pinned. The exported full-JSON admission endpoint agrees with Idris2 on six shared fixtures. The complete bounded C codec preserves active fields across a rich C→JSON→C→JSON test with byte-stable second serialization. The generated Idris2 ABI artifacts cover all 85 independently enumerated C exports, 27 structs, 27 enum representations and 142 discriminants. Tests compare all layouts, discriminants and function ABI shapes; the compiled shared/static symbol gate consumes the generated 85-symbol manifest. Planted layout, signature and symbol drift each fail. These are executable tests, not universal parser, semantic-type or cross-platform layout proofs. Unified-hexadeca integration remains unstarted because no canonical implementation is locatable. | 2026-08-30 |
 | Licence hygiene gate | C | Alpha-stable | Three steps, each negative-tested: a planted MPL header, a truncated LICENSE and an unattributed JSON file each make it fail. Polarity inverted with the AGPL relicence. | 2026-07-22 |
-| Idris2 ABI (`abi/`) | C | Beta | All 18 modules typecheck, including `ProvenBridge` and the total `CABI` declaration renderer. Raw JSON extraction is private; the exported parser admits only `ValidatedLevel` values after all four `Dec` procedures construct their witnesses. The extractor executable reports 50/50 checks, including one shared full-section positive, a planted rejection for each witness class, and malformed-IP rejection. The generated bounded header is byte-drift checked and imported by the Zig parity test. Universal parser equivalence, semantic-record-to-fixed-layout refinement and cross-platform ABI equivalence remain unproved. No `believe_me`, `postulate` or `assert_total`. Caveat: CI builds against a `proven` with `Proven.SafeMath.Proofs` removed, disclosed in `scripts/proven-min.ipkg`. | 2026-08-29 |
+| Idris2 ABI (`abi/`) | C | Beta | All 18 modules typecheck, including `ProvenBridge` and the total `CABI` declaration renderer. Raw JSON extraction is private; the exported parser admits only `ValidatedLevel` values after all four `Dec` procedures construct their witnesses. The extractor executable reports 50/50 checks, including one shared full-section positive, a planted rejection for each witness class, and malformed-IP rejection. The renderer generates the complete current 85-function Zig C-export header, compatibility include and symbol manifest, all byte-drift checked. Universal parser equivalence, semantic-record-to-fixed-layout refinement and cross-platform ABI equivalence remain unproved. No `believe_me`, `postulate` or `assert_total`. Caveat: CI builds against a `proven` with `Proven.SafeMath.Proofs` removed, disclosed in `scripts/proven-min.ipkg`. | 2026-08-30 |
 | SPARK/GNATprove reference model (`spark/`) | X | — | Does not exist. Decided in ADR-0003 (§3) and not started; `gnatprove` is not installed on the development machine. | 2026-07-22 |
 | Zig hexadeca connector | X | Blocked dependency | Does not exist. Estate reconnaissance cannot locate a canonical `unified-hexadeca-api`; Hypatia's project-local 16-transport pattern is not silently copied here. | 2026-08-29 |
 | Interactive studio frontend | X | — | 0% — not started. The engine has no interactive consumer. Supersedes the former "AffineScript shell" row: IDApTIK uses Bevy, but UMS remains an independent authoring application and its portal is currently a design reference. | 2026-07-25 |
@@ -57,7 +57,8 @@ What remains:
   and exports only `parseValidatedLevelJson`; planted semantic negatives cover
   every witness class. The exported Zig endpoint agrees on the shared six-case
   corpus. The bounded C codec also has a complete active-field round-trip test.
-  The generated header additionally has bounded C/Zig layout parity tests.
+  The generated header additionally covers all current Zig C exports with
+  executable layout, discriminant, signature-shape and compiled-symbol parity.
   None of these results proves universal parser equivalence or cross-platform
   raw layout equality.
 - **Not X or E:** every component above the D-line runs real, failing-able
@@ -105,8 +106,8 @@ stated rather than papered over.
   `ValidatedLevel`, bounded JSON admission parity is tested, and the typed
   Idris header renderer plus drift/layout gates are implemented for the bounded
   `LevelData` surface. Remaining work includes explicit refinement evidence
-  from semantic Idris records to the fixed C model, coverage of auxiliary ABI
-  surfaces, and integration with a canonical unified-hexadeca implementation
+  from semantic Idris records to the fixed C model and integration with a
+  canonical unified-hexadeca implementation
   once one exists. The shared fixtures and executable layout checks are not
   cross-language proofs.
 - **ai-edit C → B:** grow a real consumer, and close the type-6 loop so the

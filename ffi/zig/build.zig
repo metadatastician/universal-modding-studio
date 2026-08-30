@@ -195,6 +195,7 @@ pub fn build(b: *std.Build) void {
                 .{ .name = "proven_bridge", .module = proven_bridge_mod },
                 .{ .name = "multiplayer", .module = multiplayer_mod },
                 .{ .name = "game_systems", .module = game_systems_mod },
+                .{ .name = "ipc_handlers", .module = ipc_handlers_mod },
             },
         }),
     });
