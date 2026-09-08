@@ -86,13 +86,13 @@ import? "build/just/assess.just"
 # at the end of this file.
 build *args: _zig-guard
     @echo "Building {{project}} FFI (debug)..."
-    cd ffi/zig && zig build {{args}}
+    cd ffi/zig && mise exec zig@{{zig_version}} -- zig build {{args}}
     @echo "Build complete — artefacts in ffi/zig/zig-out/lib/"
 
 # Build the Zig FFI in release mode (same guard + tree as `build`)
 build-release *args: _zig-guard
     @echo "Building {{project}} FFI (release)..."
-    cd ffi/zig && zig build -Doptimize=ReleaseFast {{args}}
+    cd ffi/zig && mise exec zig@{{zig_version}} -- zig build -Doptimize=ReleaseFast {{args}}
     @echo "Release build complete — artefacts in ffi/zig/zig-out/lib/"
 
 # Build and watch for changes (requires entr or similar)
@@ -132,7 +132,7 @@ roundtrip-idaptik IDAPTIK_ROOT="../IDApTIK":
     artifact="$(mktemp --suffix=.idaptik-package.json)"
     result="$(mktemp --suffix=.idaptik-result.json)"
     trap 'rm -f "$artifact" "$result"' EXIT
-    cargo run -q -p ums-profiles --bin ums-profile -- compile-idaptik \
+    cargo run -q -p ums-profile-sdk --bin ums-profile -- compile-idaptik \
       --source profiles/idaptik/v1/ghost-lobby.ums.json \
       --idaptik-root "{{IDAPTIK_ROOT}}" \
       --output "$artifact"
@@ -142,7 +142,7 @@ roundtrip-idaptik IDAPTIK_ROOT="../IDApTIK":
     # unfit to ship.
     repeat="$(mktemp --suffix=.idaptik-package.json)"
     trap 'rm -f "$artifact" "$result" "$repeat"' EXIT
-    cargo run -q -p ums-profiles --bin ums-profile -- compile-idaptik \
+    cargo run -q -p ums-profile-sdk --bin ums-profile -- compile-idaptik \
       --source profiles/idaptik/v1/ghost-lobby.ums.json \
       --idaptik-root "{{IDAPTIK_ROOT}}" \
       --output "$repeat"
@@ -158,21 +158,21 @@ roundtrip-idaptik IDAPTIK_ROOT="../IDApTIK":
       and .seed == 31029276
       and .replay_equal == true
       and .package_guarantees_met == true
-      and .snapshot.format == "idaptik-ghost-lobby-runtime-v2"
+      and .snapshot.format == "idaptik-ghost-lobby-runtime-v3"
       and ([.events[].event] | index("CameraPinged") != null)
       and ([.cognitive_trace[].stage] | unique | length == 6)
     ' "$result" >/dev/null
     # ADR-0014's remaining clause: compare against the post-edit model. The jq
     # gate above proves acceptance and deterministic replay; neither would
     # notice a compiler that dropped a taxonomy term or retimed a command.
-    ./scripts/compare-authored-vs-accepted.py \
+    ./scripts/compare-authored-vs-accepted.sh \
       profiles/idaptik/v1/ghost-lobby.ums.json "$result"
     echo "roundtrip-idaptik: UMS artifact accepted, executed, snapshotted, restored and replayed identically"
 
 # Validate the bounded Zone A / Border Path profile through the generic profile
 # protocol. No Slavia runtime loader is claimed or required by this gate.
 slavia-profile-check:
-    cargo run -q -p ums-profiles --bin ums-profile -- validate \
+    cargo run -q -p ums-profile-sdk --bin ums-profile -- validate \
       --profile profiles/slavia/v1/profile.json \
       --fixture profiles/slavia/v1/fixtures/zone-a-border-path.json
 
@@ -223,13 +223,15 @@ crg-badge:
 #   dlc-check      — schema validation of every dlc/ artifact
 #   ai-edit-check  — sample edit-script replay
 #   ai-edit-reflect— the compiled registry equals the source that generated it
+#   abi-header-check — generated Idris2 C headers and symbol manifest are current
+#   abi-symbol-check — compiled shared/static exports match that manifest
 #   test-ffi       — Zig FFI integration tests (zig build test, 0.14.0-guarded)
 # The former chain (test e2e aspect bench readiness) was five echo-stubs
 # ending in a fabricated "safe to merge!".
 
 # Run every real test gate in this repo
-test-all: test config-check gen-check dlc-check ai-edit-check ai-edit-reflect test-ffi
-    @echo "test-all: Rust suite + Nickel contracts + codegen + DLC schema + ai-edit replay + reflection + Zig FFI — all gates real, all green"
+test-all: test config-check gen-check dlc-check ai-edit-check ai-edit-reflect abi-header-check test-ffi abi-symbol-check
+    @echo "test-all: Rust suite + Nickel contracts + codegen + DLC schema + ai-edit replay + reflection + generated ABI + Zig FFI — all gates real, all green"
 
 # Run all quality checks (zig fmt --check, Rust fmt/clippy, tests)
 quality: fmt-check lint test
@@ -245,12 +247,12 @@ fix: fmt
 
 # Format Zig FFI and Rust sources [reversible: git checkout]
 fmt: _zig-guard
-    cd ffi/zig && zig fmt .
+    cd ffi/zig && mise exec zig@{{zig_version}} -- zig fmt .
     cargo fmt
 
 # Check formatting without changing files (fails on drift)
 fmt-check: _zig-guard
-    cd ffi/zig && zig fmt --check .
+    cd ffi/zig && mise exec zig@{{zig_version}} -- zig fmt --check .
     cargo fmt --check
 
 # Lint the Rust workspace. clippy runs with -D warnings, so a lint is a
@@ -871,16 +873,29 @@ zig_version := "0.14.0"
 _zig-guard:
     #!/usr/bin/env bash
     set -euo pipefail
-    have=$(zig version 2>/dev/null || echo absent)
+    have=$(mise exec zig@{{zig_version}} -- zig version 2>/dev/null || echo absent)
     if [ "$have" != "{{zig_version}}" ]; then
       echo "error: zig {{zig_version}} required, found '$have'" >&2
-      echo "  which zig: $(command -v zig 2>/dev/null || echo '<none on PATH>')" >&2
+      echo "  requested through: mise exec zig@{{zig_version}} -- zig" >&2
       echo "  mise.toml pins {{zig_version}}. If mise is installed, this config is" >&2
       echo "  probably untrusted — run 'mise trust' in the repo root, then retry." >&2
       exit 1
     fi
 
-# Zig FFI integration tests — 24 blocks in ffi/zig/test/integration_test.zig.
+# Regenerate the C header from the typechecked Idris2 declaration model.
+abi-header:
+    ./scripts/generate-abi-header.sh
+
+# Fail if the committed generated header differs from the Idris2 renderer.
+abi-header-check:
+    ./scripts/generate-abi-header.sh --check
+
+# Build both libraries and compare their real symbols with the Idris2 manifest.
+abi-symbol-check: _zig-guard
+    cd ffi/zig && mise exec zig@{{zig_version}} -- zig build --summary all
+    ./scripts/check-abi-symbols.sh
+
+# Zig FFI integration tests — 32 blocks in ffi/zig/test/integration_test.zig.
 test-ffi *args: _zig-guard
     @echo "Running Zig FFI integration tests..."
-    cd ffi/zig && zig build test --summary all {{args}}
+    cd ffi/zig && mise exec zig@{{zig_version}} -- zig build test --summary all {{args}}

@@ -1,0 +1,5 @@
+{
+  "devices": [
+    { "kind": "server", "ip": "999.0.0.1", "name": "bad", "security": "strong" }
+  ]
+}

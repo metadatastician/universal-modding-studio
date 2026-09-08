@@ -34,6 +34,7 @@ import Data.Fin
 import Data.List
 import Data.String
 import System
+import System.File
 
 ||| A level document exercising every extracted section, in the
 ||| snake_case wire format shared with ffi/zig/src/types.zig.
@@ -41,7 +42,8 @@ fixture : String
 fixture = """
 {
   "devices": [
-    { "kind": "server", "ip": "10.1.2.3", "name": "core-db", "security": "strong" }
+    { "kind": "server", "ip": "10.1.2.3", "name": "core-db", "security": "strong" },
+    { "kind": "router", "ip": "10.1.2.4", "name": "failover", "security": "medium" }
   ],
   "zones": [ { "name": "dmz", "security_tier": 1 } ],
   "guards": [
@@ -169,7 +171,7 @@ defenceChecks _ = [("exactly two defences decoded", False)]
 
 positiveChecks : LevelData -> List (String, Bool)
 positiveChecks lvl =
-     [ ("one device decoded", length lvl.devices == 1)
+     [ ("two devices decoded", length lvl.devices == 2)
      , ("one zone decoded",   length lvl.zones == 1)
      , ("one guard decoded",  length lvl.guards == 1)
      , ("fixture passes validateAndReport", validateAndReport lvl == [])
@@ -186,7 +188,7 @@ positiveChecks lvl =
 ||| context label pointing at the right field.
 failsMentioning : String -> String -> Bool
 failsMentioning doc needle =
-  case parseLevelJson doc of
+  case parseValidatedLevelJson doc of
     Left err => needle `isInfixOf` err
     Right _  => False
 
@@ -204,6 +206,25 @@ negativeChecks =
                                  "name": "r", "weight": 1 },
                        "world_x": 0.0 } ] }
         """
+      invalidGuardWitness = """
+        { "guards": [ { "world_x": 1.0, "zone": "missing",
+                          "rank": "basic", "patrol_radius": 2.0 } ] }
+        """
+      invalidDefenceWitness = """
+        { "device_defences": [ { "ip": "10.0.0.1" } ] }
+        """
+      invalidOrderWitness = """
+        { "zone_transitions": [
+            { "world_x": 2.0, "from_zone": "a", "to_zone": "b" },
+            { "world_x": 1.0, "from_zone": "b", "to_zone": "c" }
+          ] }
+        """
+      invalidPbxWitness = """
+        { "has_pbx": true, "pbx_ip": "10.0.0.9" }
+        """
+      unrepresentableU32 = """
+        { "zones": [ { "name": "wide", "security_tier": 4294967296 } ] }
+        """
   in [ ("unknown breed rejected with context",
           failsMentioning badBreed "dogs[0].breed: unknown dog breed 'poodle'")
      , ("bad wiring kind reported",
@@ -214,6 +235,17 @@ negativeChecks =
           failsMentioning missingFields "condition")
      , ("missing container reported",
           failsMentioning missingFields "container")
+     , ("invalid guard-zone witness rejected",
+          failsMentioning invalidGuardWitness "guards_in_zones")
+     , ("invalid defence-target witness rejected",
+          failsMentioning invalidDefenceWitness "defence_targets_valid")
+     , ("invalid transition-order witness rejected",
+          failsMentioning invalidOrderWitness "zones_ordered")
+     , ("invalid PBX witness rejected",
+          failsMentioning invalidPbxWitness "pbx_consistent")
+     , ("parsed value wider than uint32 is rejected at ABI refinement",
+          failsMentioning unrepresentableU32
+            "C ABI representation refinement failed: zones")
      ]
 
 report : (String, Bool) -> IO Bool
@@ -221,21 +253,42 @@ report (label, ok) = do
   putStrLn ((if ok then "  ok   " else "  FAIL ") ++ label)
   pure ok
 
+parityCases : List (String, Bool)
+parityCases =
+  [ ("tests/abi-parity/valid-full-level.json", True)
+  , ("tests/abi-parity/reject-defence-target.json", False)
+  , ("tests/abi-parity/reject-guard-zone.json", False)
+  , ("tests/abi-parity/reject-transition-order.json", False)
+  , ("tests/abi-parity/reject-pbx.json", False)
+  , ("tests/abi-parity/reject-malformed-ip.json", False)
+  ]
+
+checkParityFile : (String, Bool) -> IO Bool
+checkParityFile (path, expected) = do
+  Right document <- readFile path
+    | Left _ => report ("shared parity fixture readable: " ++ path, False)
+  let admitted = case parseValidatedLevelJson document of
+                   Right _ => True
+                   Left _  => False
+  report ("shared parity outcome: " ++ path, admitted == expected)
+
 covering
 main : IO ()
 main =
-  case parseLevelJson fixture of
+  case parseValidatedLevelJson fixture of
     Left err => do
       putStrLn ("FAIL: fixture did not parse:\n" ++ err)
       exitWith (ExitFailure 1)
-    Right lvl => do
+    Right validated => do
       putStrLn "extractor checks:"
+      let lvl = levelData validated
       results <- traverse report (positiveChecks lvl ++ negativeChecks)
+      parityResults <- traverse checkParityFile parityCases
       -- Single let on purpose: idris2 0.7.0 fails to parse two
       -- consecutive do-lets when the do-block is a case-alternative
       -- RHS (error misreported at the alternative head).
-      let passed = length (filter Prelude.id results)
-      putStrLn (show passed ++ "/" ++ show (length results) ++ " checks passed")
-      if passed == length results
+      let passed = length (filter Prelude.id (results ++ parityResults))
+      putStrLn (show passed ++ "/" ++ show (length results + length parityResults) ++ " checks passed")
+      if passed == length results + length parityResults
         then putStrLn "PASS"
         else exitWith (ExitFailure 1)

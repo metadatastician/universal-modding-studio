@@ -1,0 +1,70 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= Idris2–Zig JSON admission parity
+:toc:
+
+== Confirmed scope
+
+`ProvenBridge.parseValidatedLevelJson` is the Idris2 admission boundary. Raw
+JSON extraction remains private; successful admission returns a
+`ValidatedLevel` only after `Representation.refineLevel` accepts the bounded C
+value-domain obligations and the four total `Dec` procedures construct
+witnesses for defence targets, guard zones, transition ordering and PBX
+consistency.
+
+`idaptik_ums_admit_level_json` is the corresponding exported Zig C-ABI
+endpoint. It parses the complete snake_case `LevelData` JSON representation,
+checks its bounded FFI representation, and applies the same four admission
+conditions without constructing the legacy C `LevelData` value.
+
+Both paths consume the single corpus in `tests/abi-parity/`. The corpus contains
+one full positive document covering every `LevelData` section and five negative
+documents: one for each witness class plus a malformed-IP control. The Idris2
+extractor executable reports all six expected outcomes, and the Zig integration
+suite calls the exported endpoint and reports the same outcomes.
+
+== Evidence classification
+
+The representation-refinement equality and four Idris2 witness values are
+*machine-checked* by Idris2. The six-case
+cross-language result is *tested parity over a bounded corpus*. It is not a
+proof that the independently implemented parsers are equivalent for every JSON
+document. The Zig implementation and a passing CI job are not described as
+proofs.
+
+== Explicit gaps
+
+The bounded active fields of the C-struct path now round-trip through the
+complete wire representation; see `docs/ABI-ROUNDTRIP.adoc`. That executable
+test is not a universal parser-equivalence proof and does not compare padding
+or inactive union payload bytes.
+
+Idris2 0.7 still cannot export C ABI headers directly. The repository now uses
+a total Idris2 declaration renderer and executable Zig/C parity checks for all
+currently exported Zig C surfaces; see `docs/ABI-HEADER.adoc`. This is tested
+layout, discriminant, signature-shape and symbol parity, not a universal ABI
+proof. No canonical unified-hexadeca API has been
+located for the Zig implementation to adopt, and no compatibility with an
+approximation is claimed. If a BEAM-native consumer is introduced later, it
+must use the estate SNIF sandbox and never a raw NIF. Rust consumers are
+Rust/Crusoe consumers.
+
+The exact representation proof boundary and its remaining physical-conversion
+gaps are recorded in `docs/ABI-REPRESENTATION.adoc`.
+
+== Reproduction
+
+[source,shell]
+----
+idris2 --typecheck idaptik-ums.ipkg
+idris2 --build extractors-test.ipkg
+./build/exec/extractors-test
+idris2 --build representation-test.ipkg
+./build/exec/representation-test
+
+cd ffi/zig
+ZIG_GLOBAL_CACHE_DIR=/tmp/ums-zig-014-global \
+  ZIG_LOCAL_CACHE_DIR=/tmp/ums-zig-014-local \
+  mise exec zig@0.14.0 -- zig build test --summary all
+----

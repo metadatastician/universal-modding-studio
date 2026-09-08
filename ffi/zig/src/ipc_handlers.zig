@@ -90,7 +90,7 @@ fn allocResponse(data: []const u8) [*:0]const u8 {
 ///
 /// Input JSON:  {"name":"my-level"} or {"path":"/tmp/idaptik-ums/levels/my-level.json"}
 /// Output JSON: the level data, or {"error":"..."}
-export fn ipc_load_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_load_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const input = std.mem.span(payload);
 
     // Extract the level name or path
@@ -130,7 +130,7 @@ export fn ipc_load_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {"name":"my-level","level":{...level data...}}
 /// Output JSON: {"path":"/tmp/idaptik-ums/levels/my-level.json"}
-export fn ipc_save_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_save_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const input = std.mem.span(payload);
 
     const name = extractField(input, "name") orelse {
@@ -187,7 +187,7 @@ extern fn idaptik_ums_destroy_level(level: ?*types.LevelData) callconv(.c) void;
 /// Deserialises the JSON payload into a LevelData struct, runs all four
 /// cross-domain proof checks (defence targets, guards-in-zones, zones-ordered,
 /// PBX-consistent), and returns the results as JSON.
-export fn ipc_validate_level_abi(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_validate_level_abi(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const input = std.mem.span(payload);
 
     // The payload may be {"level":{...}} or the level JSON directly.
@@ -269,7 +269,7 @@ fn extractLevelJson(json: []const u8) ?[]const u8 {
 ///
 /// Input JSON:  {} (no parameters)
 /// Output JSON: [{"name":"level1","path":"/tmp/..."},...]
-export fn ipc_list_levels(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_list_levels(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     _ = payload;
 
     // Ensure the levels directory exists
@@ -331,7 +331,7 @@ export fn ipc_list_levels(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {"name":"my-level"}
 /// Output JSON: the level JSON (same as load_level for now)
-export fn ipc_export_level_config(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_export_level_config(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     // Currently identical to load_level: read the file, return JSON. Kept as a
     // distinct command so export can diverge (filtering, versioning) without
     // breaking callers already bound to this name.
@@ -347,7 +347,7 @@ export fn ipc_export_level_config(payload: [*:0]const u8) callconv(.c) [*:0]cons
 /// Input JSON:  {} (no parameters)
 /// Output JSON: {"app_name":"IDApTIK UMS","version":"0.2.0","os":"linux",
 ///               "arch":"x86_64","shell":"gossamer","shell_version":"0.2.0"}
-export fn ipc_get_system_info(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_get_system_info(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     _ = payload;
 
     const os_name = switch (builtin.os.tag) {
@@ -410,7 +410,7 @@ extern fn idaptik_ums_serialize_level(level: ?*const types.LevelData, buf: ?[*]u
 ///
 /// Input JSON:  {} (no parameters — previous level is destroyed first)
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_create_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_create_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     _ = payload;
 
     // Destroy the previous active level if one exists.
@@ -434,7 +434,7 @@ export fn ipc_create_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {} (no parameters)
 /// Output JSON: {"ok":true}
-export fn ipc_destroy_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_destroy_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     _ = payload;
 
     if (active_level) |level| {
@@ -453,7 +453,7 @@ export fn ipc_destroy_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {"name":"Zone A","security_tier":2}
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_add_zone(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_add_zone(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const level = active_level orelse {
         return allocResponse("{\"error\":\"No active level — call create_level first\"}");
     };
@@ -490,7 +490,7 @@ export fn ipc_add_zone(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {"kind":0,"ip":"192.168.1.1","name":"Router","security":2}
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_add_device(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_add_device(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const level = active_level orelse {
         return allocResponse("{\"error\":\"No active level — call create_level first\"}");
     };
@@ -534,7 +534,7 @@ export fn ipc_add_device(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {"world_x":100.0,"zone":"Zone A","rank":1,"patrol_radius":50.0}
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_add_guard(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_add_guard(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const level = active_level orelse {
         return allocResponse("{\"error\":\"No active level — call create_level first\"}");
     };
@@ -573,7 +573,7 @@ export fn ipc_add_guard(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {"world_x":200.0,"breed":0,"patrol_radius":30.0}
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_add_dog(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_add_dog(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const level = active_level orelse {
         return allocResponse("{\"error\":\"No active level — call create_level first\"}");
     };
@@ -604,7 +604,7 @@ export fn ipc_add_dog(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {"world_x":300.0,"archetype":1,"altitude":100.0}
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_add_drone(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_add_drone(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const level = active_level orelse {
         return allocResponse("{\"error\":\"No active level — call create_level first\"}");
     };
@@ -635,7 +635,7 @@ export fn ipc_add_drone(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///
 /// Input JSON:  {"mission_id":"m01","location_id":"loc01","has_time_limit":true,"time_limit":300}
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_set_mission(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_set_mission(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const level = active_level orelse {
         return allocResponse("{\"error\":\"No active level — call create_level first\"}");
     };
@@ -684,7 +684,7 @@ export fn ipc_set_mission(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 ///               "has_power_system":true,"has_security_cameras":false,
 ///               "number_of_covert_links":3}
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_set_physical(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_set_physical(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const level = active_level orelse {
         return allocResponse("{\"error\":\"No active level — call create_level first\"}");
     };
@@ -722,7 +722,7 @@ export fn ipc_set_physical(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
 /// Input JSON:  {} (no parameters)
 /// Output JSON: {"valid":true,"defence_targets_valid":true,"guards_in_zones":true,
 ///               "zones_ordered":true,"pbx_consistent":true}
-export fn ipc_validate_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_validate_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     _ = payload;
 
     const level = active_level orelse {
@@ -749,7 +749,7 @@ export fn ipc_validate_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 
 ///
 /// Input JSON:  {} (no parameters)
 /// Output JSON: the level JSON, or {"error":"..."}
-export fn ipc_serialize_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_serialize_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     _ = payload;
 
     const level = active_level orelse {
@@ -779,7 +779,7 @@ export fn ipc_serialize_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8
 ///
 /// Input JSON:  {"json":"<level JSON string>"} or the level JSON directly
 /// Output JSON: {"ok":true} or {"error":"..."}
-export fn ipc_deserialize_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
+pub export fn ipc_deserialize_level(payload: [*:0]const u8) callconv(.c) [*:0]const u8 {
     const input = std.mem.span(payload);
 
     // The payload itself could be the level JSON, or wrapped as {"json":"..."}.

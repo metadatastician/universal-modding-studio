@@ -24,7 +24,7 @@ We take security seriously. We appreciate your efforts to responsibly disclose v
 
 The preferred method for reporting security vulnerabilities is through GitHub's Security Advisory feature:
 
-1. Navigate to [Report a Vulnerability](https://github.com/metadatastician/idaptik-ums/security/advisories/new)
+1. Navigate to [Report a Vulnerability](https://github.com/metadatastician/universal-modding-studio/security/advisories/new)
 2. Click **"Report a vulnerability"**
 3. Complete the form with as much detail as possible
 4. Submit — we'll receive a private notification
@@ -187,7 +187,7 @@ If we cannot reach agreement on disclosure timing, we default to 90 days from yo
 
 The following are within scope for security research:
 
-- This repository (`metadatastician/idaptik-ums`) and all its code
+- This repository (`metadatastician/universal-modding-studio`) and all its code
 - Official releases and packages published from this repository
 - Documentation that could lead to security issues
 - Build and deployment configurations in this repository
@@ -306,7 +306,7 @@ Recognition includes:
 To stay informed about security updates:
 
 - **Watch this repository**: Click "Watch" → "Custom" → Select "Security alerts"
-- **GitHub Security Advisories**: Published at [Security Advisories](https://github.com/metadatastician/idaptik-ums/security/advisories)
+- **GitHub Security Advisories**: Published at [Security Advisories](https://github.com/metadatastician/universal-modding-studio/security/advisories)
 - **Release notes**: Security fixes noted in [CHANGELOG](CHANGELOG.md)
 
 ### Update Policy
@@ -355,7 +355,7 @@ When using Idaptik Ums, we recommend:
 ## Additional Resources
 
 - [Our PGP Public Key](https://github.com/hyperpolymath.gpg)
-- [Security Advisories](https://github.com/metadatastician/idaptik-ums/security/advisories)
+- [Security Advisories](https://github.com/metadatastician/universal-modding-studio/security/advisories)
 - [Changelog](CHANGELOG.md)
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [CVE Database](https://cve.mitre.org/)
@@ -367,8 +367,8 @@ When using Idaptik Ums, we recommend:
 
 | Purpose | Contact |
 |---------|---------|
-| **Security issues** | [Report via GitHub](https://github.com/metadatastician/idaptik-ums/security/advisories/new) or j.d.a.jewell@open.ac.uk |
-| **General questions** | [GitHub Discussions](https://github.com/metadatastician/idaptik-ums/discussions) |
+| **Security issues** | [Report via GitHub](https://github.com/metadatastician/universal-modding-studio/security/advisories/new) or j.d.a.jewell@open.ac.uk |
+| **General questions** | [GitHub Discussions](https://github.com/metadatastician/universal-modding-studio/discussions) |
 | **Other enquiries** | See [README](README.md) for contact information |
 
 ---

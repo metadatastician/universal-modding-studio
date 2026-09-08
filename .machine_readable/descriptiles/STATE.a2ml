@@ -5,10 +5,10 @@
 project = "universal-modding-studio"
 version = "0.1.0-alpha"
 type = "modding-studio"
-last-updated = "2026-07-27"
-branch = "docs/estate-architecture-settlement"
-build-status = "profile seams implemented; package compiler merged from canonical"
-test-status = "Rust suites, Nickel generation, DLC contracts and the IDApTIK round trip all green in CI 2026-07-27"
+last-updated = "2026-08-30"
+branch = "main"
+build-status = "single-repository profile lanes implemented; remote rename and canonical archive cutover complete"
+test-status = "Rust/Crusoe workspace tests, Clippy, generation drift, Slavia validation, architecture boundaries, 32 Zig FFI tests, 19 Idris2 modules, 51 extractor/admission checks, 17 representation-refinement controls, 85 compiled ABI symbols and the repaired IDApTIK v3 round trip green locally"
 
 [project-context]
 description = "Universal Modding Studio: independent authoring, generation, validation and packaging platform."
@@ -17,30 +17,33 @@ first-profile = "idaptik"
 second-profile = "chronicles-of-slavia"
 
 [component-status]
-profile-sdk = { status = "tested", notes = "Versioned reflection, registration and isolation. Complementary to ums-profiles, not superseded by it (ADR-0015)." }
-profile-compiler = { status = "tested", notes = "ums-profiles consumes IDApTIK contracts/idaptik/v1 by path and emits the exact package the real game loader accepts. Merged from idaptik-ums-canonical branch agent/idaptik-roundtrip." }
+profile-sdk = { status = "tested", notes = "Sole repository-public profile abstraction and CLI host: versioned reflection, registration, isolation and descriptor-gated package compiler resolution. ums-profiles is marked non-publishable. Standalone Cargo registry packaging is not claimed." }
+profile-compiler = { status = "tested", notes = "ums-profile-sdk resolves the declared idaptik-package-compiler@1 capability to the ums-profiles implementation, which consumes IDApTIK contracts/idaptik/v1 by path and emits the exact package the real game loader accepts." }
 idaptik-profile = { status = "tested-compatibility", notes = "Generated reflection and executable edit facade; model/edit mismatch remains." }
 slavia-profile = { status = "reflection-only", notes = "Bounded Zone A fixture validated through the generic profile protocol; no loader, compiler or runtime adapter." }
 manifest-v2 = { status = "tested", notes = "Capabilities plus legacy compatibility and migration." }
 enaction-adapter = { status = "designed", notes = "Trait and schema seam only." }
 studio-ui = { status = "aspirational", notes = "Specified multi-lens target; no frontend." }
 dependency-boundaries = { status = "tested", notes = "scripts/check-architecture-boundaries.sh rejects reverse runtime/UI dependencies and cross-game profile imports; hard-fails on a missing sibling." }
-end-to-end-roundtrip = { status = "gated", notes = "Observed green in CI 2026-07-27 (run 30288163489). ADR-0014 deterministic-repeat-output clause now met: the gate compiles twice and requires byte-identical artifacts. Remaining clause: no comparison of the loader exported canonical model against authored state, which is blocked on IDApTIK package-runner exporting LevelData." }
+end-to-end-roundtrip = { status = "gated", notes = "Rerun against merged IDApTIK main on 2026-08-29. The gate compiles twice, compares all eight authored field groups with the accepted model, then executes, snapshots, restores and replays identically. Evidence is scoped to that fixture and path." }
+idris2-abi = { status = "machine-checked-scope", notes = "19 modules typecheck; raw extraction is private and the exported parser checks bounded C-value representability before four Dec procedures construct ValidatedLevel witnesses. Successful refinement carries source-preservation equality; canonical optional payloads and ItemKind have dependent re-encoding equalities. CABI is a total renderer for the complete current 85-function Zig C-export surface. Complete semantic-record-to-C-struct conversion, auxiliary session/player refinement, universal parser equivalence and foreign layout remain open, so this is not end-to-end proof." }
+zig-ffi = { status = "tested-unintegrated", notes = "32 integration tests check all 27 struct layouts, 27 enum representations, 142 discriminants and 85 function ABI shapes imported from generated Idris2 artifacts; compiled shared/static symbols are checked against the generated manifest. Planted layout, signature and symbol drift fail. No canonical unified-hexadeca-api is locatable; semantic or cross-platform ABI proof and hexadeca compliance are not claimed." }
+snif-boundary = { status = "not-applicable", notes = "No BEAM runtime in UMS. Future BEAM native compute must use SNIFs; raw NIFs are forbidden." }
 
 [route-to-mvp]
 remaining = [
-  { item = "Unify the public profile surface: expose the ums-profiles compiler through ums-profile-sdk's packageCompiler capability so there is one public abstraction, not two. Both crates stay; the second public surface does not (ADR-0015)", priority = "critical" },
-  { item = "Advance the round trip from gated to tested: have IDApTIK package-runner export the canonical LevelData the loader built, then compare it field by field against authored UMS state. Artifact determinism is now asserted; this is the last ADR-0014 clause outstanding", priority = "critical" },
-  { item = "Write Dec-returning deciders for the four invariants abi/Validation.idr declares, so a ValidatedLevel can actually be constructed and the extractor path is obliged to produce one. The module currently has zero top-level function signatures and proves nothing", priority = "high" },
-  { item = "Archive idaptik-ums-canonical read-only with a what-was-not-taken-and-why appendix (ADR-0015)", priority = "high" },
+  { item = "Expand bounded differential parser/admission parity beyond the current corpus; do not describe corpus coverage as universal proof", priority = "high" },
+  { item = "Model and verify complete semantic-to-C-struct conversion and auxiliary session/player refinements beyond the implemented bounded LevelData admission proof", priority = "high" },
+  { item = "Integrate the Zig FFI with unified-hexadeca-api once its canonical implementation and versioned contract can be located; do not fabricate a local substitute", priority = "high" },
   { item = "Close IDApTIK modelled-versus-editable gaps", priority = "high" },
   { item = "Keep Slavia reflection aligned with its authoritative repository", priority = "medium" },
+  { item = "Choose a standalone Cargo registry packaging boundary if external crate publication becomes a requirement; ums-profile-sdk currently has an intentional path dependency on non-publishable ums-profiles", priority = "medium" },
   { item = "Implement interactive studio only after host-neutral selection/IR seams exist", priority = "medium" }
 ]
 
 [cross-repository-reconciliation]
 coordination-id = "ums-idaptik-slavia-enaction-2026-07-25"
-decision-status = "working direction recorded for the next agent; consolidation is required before publication"
+decision-status = "one-repository profile-lane model accepted in ADR-0018; rename/archive cutover complete"
 role = "Authoring, profile reflection, validation orchestration, game-specific compilation, and package emission; never game-runtime truth."
 settled = [
   "Released games must not depend on the UMS user interface",
@@ -77,8 +80,8 @@ required-order = [
   "DONE 2026-07-27: cherry-picked ums-profiles, the roundtrip and slavia-profile-check recipes, and the boundary script into this repository",
   "DONE 2026-07-27: consolidated both IDApTIK and both Slavia profile layouts under profiles/<game>/v<N>/",
   "DONE 2026-07-27: reran roundtrip-idaptik, slavia-profile-check, architecture-check, gen-check, config-check, dlc-check, ai-edit-check, workspace tests and Clippy -- all pass",
-  "OPEN: expose the ums-profiles compiler through ums-profile-sdk so one public abstraction is published, not two",
-  "OPEN: archive idaptik-ums-canonical read-only with a what-was-not-taken appendix",
+  "DONE 2026-08-29: exposed the IDApTIK compiler through ums-profile-sdk's packageCompiler capability and made ums-profiles non-publishable",
+  "DONE 2026-08-29: renamed this repository in place to universal-modding-studio and archived canonical-ums with ADR-0018's disposition appendix",
 ]
 do-not = [
   "Do not merge both profile SDKs unchanged",

@@ -4,6 +4,7 @@
 module Primitives
 
 import Data.Fin
+import Decidable.Equality
 
 %default total
 
@@ -20,6 +21,19 @@ public export
 Eq IpAddress where
   (MkIpAddress a1 a2 a3 a4) == (MkIpAddress b1 b2 b3 b4) =
     a1 == b1 && a2 == b2 && a3 == b3 && a4 == b4
+
+public export
+DecEq IpAddress where
+  decEq (MkIpAddress a1 a2 a3 a4) (MkIpAddress b1 b2 b3 b4) =
+    case decEq a1 b1 of
+      No different => No (\Refl => different Refl)
+      Yes Refl => case decEq a2 b2 of
+        No different => No (\Refl => different Refl)
+        Yes Refl => case decEq a3 b3 of
+          No different => No (\Refl => different Refl)
+          Yes Refl => case decEq a4 b4 of
+            No different => No (\Refl => different Refl)
+            Yes Refl => Yes Refl
 
 ||| A percentage value bounded 0-100.
 public export

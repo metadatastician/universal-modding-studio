@@ -76,6 +76,19 @@ Current trust level: maximal
   - MAINTAINERS.adoc
   - .github/CODEOWNERS
 
+[SEAMS]
+
+seams:
+  - id: "idris2-zig-level-abi"
+    description: "Idris2 level/validation contract implemented by the Zig FFI"
+    from: "abi/"
+    to: "ffi/zig/"
+    contract: "abi/Validation.idr"
+    test_ref: "ffi/zig/test/integration_test.zig"
+    failure_mode: "fail-closed"
+    tier: "zig-assured"
+    notes: "Idris2 admission now returns ValidatedLevel only. Zig parity/header generation and the unlocated canonical hexadeca dependency remain open; scaffolding is not proof."
+
 ## Container Security
 
 #### container-images-pinned

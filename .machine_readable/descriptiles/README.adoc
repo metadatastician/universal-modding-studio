@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-# A2ML 6a2 Directory
+= A2ML descriptiles directory
 
-This directory contains the 6 core A2ML machine-readable metadata files for this repository.
+This directory contains the six core A2ML machine-readable descriptive files
+for this repository. `.machine_readable/6a2/` is retired and must not be
+recreated.
 
-## Files
+== Files
 
 - `AGENTIC.a2ml` - AI agent operational gating, safety controls
 - `ECOSYSTEM.a2ml` - Project ecosystem position, relationships, explicit boundaries
@@ -13,8 +15,7 @@ This directory contains the 6 core A2ML machine-readable metadata files for this
 - `PLAYBOOK.a2ml` - Executable plans, operational runbooks
 - `STATE.a2ml` - Project state, phase, milestones, session history
 
-## Standards Compliance
+== Standards compliance
 
 These files follow the A2ML Format Family specification from:
 https://github.com/hyperpolymath/standards/tree/main/a2ml
-

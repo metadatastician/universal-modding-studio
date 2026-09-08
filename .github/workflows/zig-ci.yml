@@ -24,6 +24,8 @@ on:
     branches: [main, master]
     paths:
       - 'ffi/zig/**'
+      - 'generated/abi/**'
+      - 'scripts/check-abi-symbols.sh'
       - 'mise.toml'
       - 'Justfile'
       - '.github/workflows/zig-ci.yml'
@@ -31,6 +33,8 @@ on:
     branches: [main, master]
     paths:
       - 'ffi/zig/**'
+      - 'generated/abi/**'
+      - 'scripts/check-abi-symbols.sh'
       - 'mise.toml'
       - 'Justfile'
       - '.github/workflows/zig-ci.yml'
@@ -80,3 +84,6 @@ jobs:
           test -f zig-out/lib/libidaptik_ums.a
           ls zig-out/lib/libidaptik_ums.so* >/dev/null
           echo "artefacts present"
+
+      - name: Check compiled ABI symbols
+        run: ./scripts/check-abi-symbols.sh

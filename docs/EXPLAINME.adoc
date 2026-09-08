@@ -23,8 +23,13 @@ solver seams, package envelopes and their evidence.
 ====
 
 The newer profile boundary follows the same rule more strictly:
-`crates/ums-profiles` consumes versioned game artifacts. It does not link
-`idaptik-core` or `slavia-core`. `just roundtrip-idaptik` is the evidence that
+`crates/ums-profile-sdk` is the public abstraction and resolves its
+`packageCompiler` service from the registered profile descriptor.
+`crates/ums-profiles` is the non-publishable implementation crate; it
+consumes versioned game artifacts and does not link `idaptik-core` or
+`slavia-core`. The `ums-profile` CLI is hosted by `ums-profile-sdk` and
+resolves the compiler through that public abstraction. `just
+roundtrip-idaptik` is the evidence that
 the artifact produced here is accepted by the sibling game's actual loader;
 `just slavia-profile-check` is descriptive-profile evidence only.
 
@@ -192,7 +197,7 @@ contract; nothing yet proves the game accepts what UMS emits.
 === "Python, TypeScript, ReScript and Go are not used"
 
 Evidence::
-`git ls-files '*.py'` is empty. `.machine_readable/6a2/AGENTIC.a2ml` forbids
+`git ls-files '*.py'` is empty. `.machine_readable/descriptiles/AGENTIC.a2ml` forbids
 them. `licence-hygiene.yml` gates attributability of every tracked file.
 
 == Where the evidence stops
@@ -206,8 +211,9 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
   installed on the development machine.
 
 | Zig hexadeca connector
-| *Not started.* `ffi/zig/` is the existing 11-file C-ABI surface, not the
-  16-protocol unified connector.
+| *Blocked on an unlocated canonical dependency.* `ffi/zig/` is the existing
+  11-file C-ABI surface. Hypatia's 16-transport connector is project-local
+  reference material, not an authoritative implementation to copy.
 
 | Interactive studio frontend
 | *Not started.* The engine has no interactive consumer.
@@ -218,18 +224,29 @@ them. `licence-hygiene.yml` gates attributability of every tracked file.
   `every-instruction-has-an-inverse`; nothing has ever checked that.
 
 | Idris2 `abi/Validation.idr`
-| Declares six proof-witness types and a `ValidatedLevel` record with four
-  erased proof fields, and contains **zero top-level function signatures**.
-  Nothing constructs a witness; nothing outside the module mentions
-  `ValidatedLevel`; the extractor returns raw `LevelData`. The invariants are
-  stated, never established. It typechecks because declaring a datatype always
-  does. (`ProvenBridge` itself landed 2026-07-20 and is 17/17 — the earlier
-  "2 typed holes" entry here was stale for five days.)
+| Contains total `Dec` procedures for the four cross-domain invariants and
+  constructs a `ValidatedLevel` with erased witnesses. `ProvenBridge` keeps
+  raw extraction private and exports `parseValidatedLevelJson`; its executable
+  tests plant a failing value for every witness class. The exported Zig JSON
+  admission endpoint agrees on the shared six-fixture corpus, including a
+  malformed-IP rejection control. This is bounded tested parity, not proof of
+  universal parser equivalence. The bounded C codec now has a separate complete
+  active-field round-trip test. The generated Idris2 ABI artifacts cover all
+  85 current Zig C exports, 27 structs, 27 enum representations and 142
+  discriminants; executable gates compare their layouts, function ABI shapes
+  and compiled symbols. `abi/Representation.idr` additionally checks bounded
+  semantic admission and carries source-preservation equality, plus canonical
+  optional and `ItemKind` round trips. It does not prove the complete semantic
+  record-to-C-struct copy. These checks do not prove semantic type identity,
+  cross-platform ABI equivalence or universal parser equivalence. See
+  `docs/ABI-PARITY.adoc`, `docs/ABI-ROUNDTRIP.adoc` and
+  `docs/ABI-HEADER.adoc`, with the exact proof ledger in
+  `docs/ABI-REPRESENTATION.adoc`.
 
 | UMS → game round trip
-| Executed successfully on 2026-07-27: `just roundtrip-idaptik` compiles the
-  profile source, IDApTIK's real loader accepts it, and the run snapshots,
-  restores and replays identically. **Not yet gated in CI**, so it is
-  demonstrated but not defended against regression. ADR-0014's condition is
-  met only when it runs there.
+| CI-gated and rerun against merged IDApTIK main on 2026-08-29:
+  `just roundtrip-idaptik` compiles twice, confirms all eight authored field
+  groups survive acceptance, then executes, snapshots, restores and replays
+  identically. This tests that concrete fixture and path; it is not a proof of
+  arbitrary authored content.
 |===

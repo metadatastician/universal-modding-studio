@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-//! Data-driven UMS game profiles.
+//! Internal data-driven UMS game-profile implementations.
 //!
 //! This crate knows the generic profile protocol. Game vocabulary stays in
 //! `profiles/<game>/`; the IDApTIK compiler consumes the game's published
 //! contract metadata and scenario artifact instead of re-declaring its Rust
-//! types here.
+//! types here. Publishable callers and the CLI use `ums-profile-sdk`; this
+//! crate remains a workspace implementation boundary.
 
 #![forbid(unsafe_code)]
 
@@ -150,6 +151,7 @@ pub fn validate_declared_profile(profile: &Value, fixture: &Value) -> Result<(),
 ///
 /// `idaptik_root` is explicit so the compiler consumes the sibling game's
 /// versioned artifacts. Nothing is copied into UMS.
+#[doc(hidden)]
 pub fn compile_idaptik(source_path: &Path, idaptik_root: &Path) -> Result<Value, ProfileError> {
     let source = read_json(source_path)?;
     let contract_rel = source

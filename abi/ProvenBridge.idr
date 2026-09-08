@@ -39,7 +39,8 @@ import Mission
 import Wiring
 import Physical
 import Level
-import Validation
+import Representation
+import public Validation
 
 import Data.Fin
 import Data.List
@@ -713,10 +714,12 @@ defaultPhysicalConfig : PhysicalConfig
 defaultPhysicalConfig = MkPhysicalConfig 0.0 0.0 0.0 False False 0
 
 ------------------------------------------------------------------------
--- Top-level: parseLevelJson
+-- Top-level: validated level extraction
 ------------------------------------------------------------------------
 
-||| Parse a raw JSON string into a LevelData record.
+||| Parse a raw JSON string into a LevelData record before cross-domain
+||| validation. This helper is deliberately private: callers at the module
+||| boundary receive only `ValidatedLevel` from `parseValidatedLevelJson`.
 |||
 ||| This function is total: malformed JSON or missing/wrong-typed fields
 ||| produce a Left with human-readable error descriptions. It never crashes.
@@ -732,9 +735,9 @@ defaultPhysicalConfig = MkPhysicalConfig 0.0 0.0 0.0 False False 0
 ||| absent `mission`/`physical` object yields its default config, so
 ||| `{}` is a minimal valid level. Element schemas are documented on
 ||| the per-record extractors above.
-export
-parseLevelJson : String -> Either String LevelData
-parseLevelJson input =
+private
+parseLevelDataJson : String -> Either String LevelData
+parseLevelDataJson input =
   case parse input of
     Left err   => Left ("JSON parse failure: " ++ show err)
     Right json => extractedToEither (extractLevelData json)
@@ -804,6 +807,41 @@ parseLevelJson input =
            <*> missionR <*> physicalR <*> ztR <*> defencesR
            <*> hasPbxR <*> pbxIpR <*> pbxWxR
 
+private
+validationFailureNames : LevelData -> List String
+validationFailureNames level =
+     (case decDefenceTargetsValid (deviceDefences level) (devices level) of
+        Yes _ => []
+        No _ => ["defence_targets_valid"])
+  ++ (case decGuardsInZones (guards level) (zones level) of
+        Yes _ => []
+        No _ => ["guards_in_zones"])
+  ++ (case decZonesOrdered (zoneTransitions level) of
+        Yes _ => []
+        No _ => ["zones_ordered"])
+  ++ (case decPBXConsistent (hasPBX level) (pbxIp level) (devices level) of
+        Yes _ => []
+        No _ => ["pbx_consistent"])
+
+||| Parse and admit a level through the Idris2-owned validation boundary.
+|||
+||| Successful extraction alone is insufficient: the resulting LevelData
+||| must first refine without truncation into the bounded abstract C ABI value
+||| domain, then carry witnesses for defence targets, guard zones, transition
+||| ordering and PBX consistency. No raw extraction function is exported.
+export
+parseValidatedLevelJson : String -> Either String ValidatedLevel
+parseValidatedLevelJson input =
+  case parseLevelDataJson input of
+    Left err => Left err
+    Right level => case refineLevel level of
+      Left errors => Left ("C ABI representation refinement failed: " ++
+                           joinBy ", " errors)
+      Right (_ ** Refl) => case validateLevel level of
+        Nothing => Left ("cross-domain validation failed: " ++
+                         joinBy ", " (validationFailureNames level))
+        Just validated => Right validated
+
 ------------------------------------------------------------------------
 -- validateAndReport: human-readable validation diagnostics
 ------------------------------------------------------------------------
@@ -811,10 +849,10 @@ parseLevelJson input =
 ||| Run cross-domain validation checks on a LevelData and collect all
 ||| failures as human-readable strings.
 |||
-||| Performs the decidable (Bool-returning) subset of the checks that
-||| Validation.idr encodes as proofs. It cannot construct the proof
-||| witnesses (those require compile-time evidence) but it can report
-||| whether the data WOULD pass validation.
+||| This is a diagnostic superset used for human-readable reports. Admission
+||| does not depend on these Bool-style checks: `parseValidatedLevelJson`
+||| calls `Validation.validateLevel`, whose `Dec` procedures construct the
+||| erased witnesses or return a refutation.
 |||
 ||| Checks performed:
 |||   1. Every guard references a zone that exists in the zone list.

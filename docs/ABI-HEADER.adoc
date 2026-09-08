@@ -1,0 +1,108 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= Generated complete Zig C-export ABI header
+:toc:
+
+== Implemented authority chain
+
+Idris2 0.7 has no general C-header backend. UMS therefore uses the established
+estate pattern implemented by `enaction-engine`: `abi/CABI.idr` is a total,
+typechecked renderer over an explicit C declaration model. Running
+`scripts/generate-abi-header.sh` builds that Idris2 executable and writes
+`generated/abi/idaptik_ums.h`. The generated file is committed so C consumers
+do not need Idris2 installed. `generated/abi/idaptik_ums_level.h` is a generated
+compatibility include for the earlier bounded-header name, and
+`generated/abi/SYMBOLS` is generated from the same function declarations.
+
+`scripts/generate-abi-header.sh --check` renders into a temporary directory and
+compares all three results byte-for-byte with their committed forms. `just
+abi-header-check` exposes that drift gate, and the Idris2 CI job runs it after
+typechecking the package.
+
+The generated surface contains:
+
+* the fixed capacities owned by `abi/Representation.idr` and used by the
+  bounded `LevelData` representation;
+* all 27 one-byte enum representations and their 142 discriminant constants;
+* all 27 C structs used by the level, multiplayer and game-system surfaces,
+  including explicit padding where the representation requires it;
+* all 85 C exports independently enumerated across the nine Zig source
+  modules: the core, inventory, enemies, mission, wiring, checked-operation
+  bridge, multiplayer, game-systems and IPC surfaces.
+
+== Executable parity evidence
+
+The Zig integration suite imports the generated header using `@cImport`. For
+each of the 27 C structs it compares C and Zig size, alignment and every named
+field offset. It also compares the width and every declared discriminant of all
+27 one-byte enums. For every one of the 85 exports it compares the C-imported
+and Zig calling convention, parameter count, each parameter's ABI size and
+alignment, and the return ABI size and alignment. The suite contains 32 tests.
+
+After the pinned Zig build, `scripts/check-abi-symbols.sh` requires the shared
+library's complete `idaptik_*`/`ipc_*` dynamic-export set to equal the generated
+manifest and requires every manifest entry in the static archive. `just
+abi-symbol-check` and Zig CI run this check.
+
+A planted negative control changed the generated `ums_world_x.position` from
+`double` to `uint32_t`. The parity test failed with the observed mismatch
+`expected 8, found 4`; regeneration restored the committed header. This
+confirms that the gate can detect at least that class of width drift.
+
+The completed auxiliary stage planted two additional controls. Changing
+`ums_detection_event.timestamp` from `double` to `uint32_t` failed layout
+parity with `expected 16, found 12`. Changing `idaptik_gs_apply_damage`'s
+`raw_damage` parameter from `uint32_t` to `uint8_t` failed signature parity
+with `expected 4, found 1`. Adding a fictitious symbol to `SYMBOLS` failed the
+compiled shared-library comparison. Regeneration restored all three artifacts.
+
+== Guarantee boundary
+
+The Idris2 renderer is implemented and typechecked; generated freshness is
+byte-compared; layout, discriminant and function-shape parity are tested on the
+CI target; compiled symbol membership is checked. None of those facts is a
+universal proof of C ABI equivalence across all compilers, architectures or
+future targets. Function-shape checks do not establish semantic parameter
+meaning, ownership, C qualifiers, or equivalence between same-sized distinct
+types.
+
+The physical C declarations in `CABI.idr` are an explicit representation model
+for the semantic records in the other Idris2 modules.
+`Representation.refineLevel` now machine-checks the bounded admission
+obligations and proves that successful admission preserves the source semantic
+value; canonical optional and item-tag encodings have dependent round-trip
+decoders. It does not yet prove the complete copy into every generated C struct,
+allocation or pointer lifetime, nor can Idris2 inspect a foreign compiler's
+layout. Those remaining obligations are executable parity evidence and explicit
+gaps; see `docs/ABI-REPRESENTATION.adoc`. Scaffolding is not reported as proof.
+
+== Reproduction
+
+[source,shell]
+----
+idris2 --typecheck idaptik-ums.ipkg
+./scripts/generate-abi-header.sh --check
+
+cd ffi/zig
+ZIG_GLOBAL_CACHE_DIR=/tmp/ums-zig-header-global \
+  ZIG_LOCAL_CACHE_DIR=/tmp/ums-zig-header-local \
+  mise exec zig@0.14.0 -- zig build test --summary all
+
+cd ../..
+just abi-symbol-check
+----
+
+== Estate integration boundaries
+
+No unified-hexadeca integration is claimed. The bounded reconnaissance horizon
+was the locally checked-out estate plus the complete 36-repository
+`metadatastician` organisation listing obtained during this stage. Hypatia has
+a project-local sixteen-connector pattern, but its connector starts are
+documented as log-only stubs. `authority-watch` independently records the
+canonical `unified-hexadeca-api` dependency as blocked because no canonical
+repository was located. UMS will not copy or rename either substitute into an
+authoritative API.
+
+Any future Rust consumer is a Rust/Crusoe consumer. Any future BEAM-native
+adapter must use SNIFs and never raw NIFs.
