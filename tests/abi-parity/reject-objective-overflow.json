@@ -1,0 +1,41 @@
+{
+  "mission": {
+    "mission_id": "capacity-overflow",
+    "location_id": "test-lab",
+    "objectives": [
+      { "id": "o01", "description": "objective 01", "required": true },
+      { "id": "o02", "description": "objective 02", "required": true },
+      { "id": "o03", "description": "objective 03", "required": true },
+      { "id": "o04", "description": "objective 04", "required": true },
+      { "id": "o05", "description": "objective 05", "required": true },
+      { "id": "o06", "description": "objective 06", "required": true },
+      { "id": "o07", "description": "objective 07", "required": true },
+      { "id": "o08", "description": "objective 08", "required": true },
+      { "id": "o09", "description": "objective 09", "required": true },
+      { "id": "o10", "description": "objective 10", "required": true },
+      { "id": "o11", "description": "objective 11", "required": true },
+      { "id": "o12", "description": "objective 12", "required": true },
+      { "id": "o13", "description": "objective 13", "required": true },
+      { "id": "o14", "description": "objective 14", "required": true },
+      { "id": "o15", "description": "objective 15", "required": true },
+      { "id": "o16", "description": "objective 16", "required": true },
+      { "id": "o17", "description": "objective 17", "required": true },
+      { "id": "o18", "description": "objective 18", "required": true },
+      { "id": "o19", "description": "objective 19", "required": true },
+      { "id": "o20", "description": "objective 20", "required": true },
+      { "id": "o21", "description": "objective 21", "required": true },
+      { "id": "o22", "description": "objective 22", "required": true },
+      { "id": "o23", "description": "objective 23", "required": true },
+      { "id": "o24", "description": "objective 24", "required": true },
+      { "id": "o25", "description": "objective 25", "required": true },
+      { "id": "o26", "description": "objective 26", "required": true },
+      { "id": "o27", "description": "objective 27", "required": true },
+      { "id": "o28", "description": "objective 28", "required": true },
+      { "id": "o29", "description": "objective 29", "required": true },
+      { "id": "o30", "description": "objective 30", "required": true },
+      { "id": "o31", "description": "objective 31", "required": true },
+      { "id": "o32", "description": "objective 32", "required": true },
+      { "id": "o33", "description": "objective 33", "required": true }
+    ]
+  }
+}

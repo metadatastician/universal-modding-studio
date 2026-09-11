@@ -1,0 +1,6 @@
+{
+  "zones": [ { "name": "lobby", "security_tier": 1 } ],
+  "guards": [
+    { "world_x": 1.0, "zone": "lobby", "rank": "chief", "patrol_radius": 2.0 }
+  ]
+}
