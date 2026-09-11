@@ -1,0 +1,3 @@
+{
+  "zones": [ { "name": "too-wide", "security_tier": 4294967296 } ]
+}

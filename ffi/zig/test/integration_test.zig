@@ -489,9 +489,18 @@ test "shared Idris2-Zig JSON admission corpus has identical outcomes" {
     try std.testing.expect(!main.idaptik_ums_admit_level_json(&one_byte, 1024 * 1024 + 1));
 
     const allocator = std.testing.allocator;
-    const accepted = try std.fs.cwd().readFileAlloc(allocator, "tests/abi-parity/valid-full-level.json", 1024 * 1024);
-    defer allocator.free(accepted);
-    try std.testing.expect(main.idaptik_ums_admit_level_json(accepted.ptr, accepted.len));
+    const accepted_paths = [_][]const u8{
+        "tests/abi-parity/valid-full-level.json",
+        "tests/abi-parity/accept-u32-max.json",
+        "tests/abi-parity/accept-objective-capacity.json",
+        "tests/abi-parity/accept-security-chief.json",
+        "tests/abi-parity/accept-unknown-top-level-field.json",
+    };
+    for (accepted_paths) |path| {
+        const fixture = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
+        defer allocator.free(fixture);
+        try std.testing.expect(main.idaptik_ums_admit_level_json(fixture.ptr, fixture.len));
+    }
 
     const rejected_paths = [_][]const u8{
         "tests/abi-parity/reject-defence-target.json",
@@ -499,6 +508,10 @@ test "shared Idris2-Zig JSON admission corpus has identical outcomes" {
         "tests/abi-parity/reject-transition-order.json",
         "tests/abi-parity/reject-pbx.json",
         "tests/abi-parity/reject-malformed-ip.json",
+        "tests/abi-parity/reject-u32-overflow.json",
+        "tests/abi-parity/reject-objective-overflow.json",
+        "tests/abi-parity/reject-embedded-nul.json",
+        "tests/abi-parity/reject-chief-alias.json",
     };
     for (rejected_paths) |path| {
         const fixture = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);

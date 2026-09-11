@@ -256,11 +256,19 @@ report (label, ok) = do
 parityCases : List (String, Bool)
 parityCases =
   [ ("tests/abi-parity/valid-full-level.json", True)
+  , ("tests/abi-parity/accept-u32-max.json", True)
+  , ("tests/abi-parity/accept-objective-capacity.json", True)
+  , ("tests/abi-parity/accept-security-chief.json", True)
+  , ("tests/abi-parity/accept-unknown-top-level-field.json", True)
   , ("tests/abi-parity/reject-defence-target.json", False)
   , ("tests/abi-parity/reject-guard-zone.json", False)
   , ("tests/abi-parity/reject-transition-order.json", False)
   , ("tests/abi-parity/reject-pbx.json", False)
   , ("tests/abi-parity/reject-malformed-ip.json", False)
+  , ("tests/abi-parity/reject-u32-overflow.json", False)
+  , ("tests/abi-parity/reject-objective-overflow.json", False)
+  , ("tests/abi-parity/reject-embedded-nul.json", False)
+  , ("tests/abi-parity/reject-chief-alias.json", False)
   ]
 
 checkParityFile : (String, Bool) -> IO Bool

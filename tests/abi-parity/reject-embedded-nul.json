@@ -1,0 +1,3 @@
+{
+  "zones": [ { "name": "public\u0000hidden", "security_tier": 1 } ]
+}

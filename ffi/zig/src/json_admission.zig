@@ -157,6 +157,10 @@ fn oneOf(value: []const u8, allowed: []const []const u8) bool {
     return false;
 }
 
+fn cStringSafe(value: []const u8) bool {
+    return std.mem.indexOfScalar(u8, value, 0) == null;
+}
+
 fn validIp(value: []const u8) bool {
     var parts = std.mem.splitScalar(u8, value, '.');
     var count: usize = 0;
@@ -194,7 +198,7 @@ fn validateItemKind(kind: WireItemKind) bool {
     if (std.mem.eql(u8, kind.type, "consumable"))
         return kind.sub_type != null and oneOf(kind.sub_type.?, &.{ "battery_pack", "emp", "smoke_grenade", "decryptor" });
     if (std.mem.eql(u8, kind.type, "storage")) return kind.capacity != null;
-    if (std.mem.eql(u8, kind.type, "keycard")) return kind.zone != null;
+    if (std.mem.eql(u8, kind.type, "keycard")) return kind.zone != null and cStringSafe(kind.zone.?);
     return std.mem.eql(u8, kind.type, "radio");
 }
 
@@ -207,20 +211,20 @@ pub fn validateRepresentation(level: WireLevel) AdmissionError!void {
 
     for (level.devices) |device| {
         if (!oneOf(device.kind, &.{ "laptop", "desktop", "server", "router", "switch", "firewall", "camera", "access_point", "patch_panel", "power_supply", "phone_system", "fibre_hub" }) or
-            !validIp(device.ip) or device.name.len == 0 or
+            !validIp(device.ip) or !cStringSafe(device.name) or
             !oneOf(device.security, &.{ "open", "weak", "medium", "strong" }))
             return error.InvalidField;
     }
-    for (level.zones) |zone| if (zone.name.len == 0) return error.InvalidField;
+    for (level.zones) |zone| if (!cStringSafe(zone.name)) return error.InvalidField;
     for (level.guards) |guard| {
-        if (guard.zone.len == 0 or !oneOf(guard.rank, &.{ "basic", "enforcer", "anti_hacker", "sentinel", "assassin", "elite", "chief", "rival_hacker" }))
+        if (!cStringSafe(guard.zone) or !oneOf(guard.rank, &.{ "basic", "enforcer", "anti_hacker", "sentinel", "assassin", "elite", "security_chief", "rival_hacker" }))
             return error.InvalidField;
     }
     for (level.dogs) |dog| if (!oneOf(dog.breed, &.{ "patrol", "bloodhound", "robo_dog" })) return error.InvalidField;
     for (level.drones) |drone| if (!oneOf(drone.archetype, &.{ "helper", "hunter", "killer" })) return error.InvalidField;
     for (level.items) |world_item| {
-        if (world_item.item.id.len == 0 or world_item.item.name.len == 0 or
-            world_item.container.len == 0 or !validateItemKind(world_item.item.kind) or
+        if (!cStringSafe(world_item.item.id) or !cStringSafe(world_item.item.name) or
+            !cStringSafe(world_item.container) or !validateItemKind(world_item.item.kind) or
             !oneOf(world_item.item.condition, &.{ "pristine", "good", "worn", "damaged", "broken" }))
             return error.InvalidField;
     }
@@ -229,14 +233,14 @@ pub fn validateRepresentation(level: WireLevel) AdmissionError!void {
             return error.InvalidField;
     }
     if (level.mission) |mission| {
-        if (mission.mission_id.len == 0 or mission.location_id.len == 0 or mission.objectives.len > 32)
+        if (!cStringSafe(mission.mission_id) or !cStringSafe(mission.location_id) or mission.objectives.len > 32)
             return error.InvalidField;
         for (mission.objectives) |objective| {
-            if (objective.id.len == 0 or objective.description.len == 0) return error.InvalidField;
+            if (!cStringSafe(objective.id) or !cStringSafe(objective.description)) return error.InvalidField;
         }
     }
     for (level.zone_transitions) |transition| {
-        if (transition.from_zone.len == 0 or transition.to_zone.len == 0) return error.InvalidField;
+        if (!cStringSafe(transition.from_zone) or !cStringSafe(transition.to_zone)) return error.InvalidField;
     }
     for (level.device_defences) |defence| {
         if (!validIp(defence.ip)) return error.InvalidField;
@@ -244,7 +248,7 @@ pub fn validateRepresentation(level: WireLevel) AdmissionError!void {
             if (target) |ip| if (!validIp(ip)) return error.InvalidField;
         }
         if (defence.flags.instruction_whitelist) |instructions| {
-            for (instructions) |instruction| if (instruction.len == 0) return error.InvalidField;
+            for (instructions) |instruction| if (!cStringSafe(instruction)) return error.InvalidField;
         }
     }
     if (!validIp(level.pbx_ip)) return error.InvalidField;
@@ -301,8 +305,14 @@ pub fn parseRepresentableLevel(allocator: std.mem.Allocator, input: []const u8) 
 }
 
 test "shared fixture corpus matches Idris2 admission outcomes" {
-    const accepted = @embedFile("../../../tests/abi-parity/valid-full-level.json");
-    try admitLevelJson(std.testing.allocator, accepted);
+    const accepted = [_][]const u8{
+        @embedFile("../../../tests/abi-parity/valid-full-level.json"),
+        @embedFile("../../../tests/abi-parity/accept-u32-max.json"),
+        @embedFile("../../../tests/abi-parity/accept-objective-capacity.json"),
+        @embedFile("../../../tests/abi-parity/accept-security-chief.json"),
+        @embedFile("../../../tests/abi-parity/accept-unknown-top-level-field.json"),
+    };
+    for (accepted) |fixture| try admitLevelJson(std.testing.allocator, fixture);
 
     const rejected = [_][]const u8{
         @embedFile("../../../tests/abi-parity/reject-defence-target.json"),
@@ -310,6 +320,10 @@ test "shared fixture corpus matches Idris2 admission outcomes" {
         @embedFile("../../../tests/abi-parity/reject-transition-order.json"),
         @embedFile("../../../tests/abi-parity/reject-pbx.json"),
         @embedFile("../../../tests/abi-parity/reject-malformed-ip.json"),
+        @embedFile("../../../tests/abi-parity/reject-u32-overflow.json"),
+        @embedFile("../../../tests/abi-parity/reject-objective-overflow.json"),
+        @embedFile("../../../tests/abi-parity/reject-embedded-nul.json"),
+        @embedFile("../../../tests/abi-parity/reject-chief-alias.json"),
     };
     for (rejected) |fixture| {
         _ = admitLevelJson(std.testing.allocator, fixture) catch continue;
