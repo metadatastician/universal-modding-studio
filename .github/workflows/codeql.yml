@@ -31,6 +31,8 @@ jobs:
           persist-credentials: false
         with:
           persist-credentials: false
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v3
@@ -38,7 +40,7 @@ jobs:
           languages: rust,actions
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3.37.3
+        uses: github/codeql-action/autobuild@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v3
