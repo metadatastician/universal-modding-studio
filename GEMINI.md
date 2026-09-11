@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
 # Pointer
 
 The canonical, tool-agnostic instructions for this repository are in
